@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,13 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				educhain: {
+					purple: '#9b87f5',
+					darkPurple: '#6E59A5',
+					lightPurple: '#E5DEFF',
+					dark: '#1A1F2C',
+					light: '#F6F9FC',
 				}
 			},
 			borderRadius: {
@@ -84,11 +92,30 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' },
+				},
+				'pulse-gentle': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.8' },
+				},
+				'slide-up': {
+					'0%': { transform: 'translateY(20px)', opacity: '0' },
+					'100%': { transform: 'translateY(0)', opacity: '1' },
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'float': 'float 6s ease-in-out infinite',
+				'pulse-gentle': 'pulse-gentle 3s ease-in-out infinite',
+				'slide-up': 'slide-up 0.5s ease-out',
+			},
+			backgroundImage: {
+				'hero-pattern': "url('/hero-pattern.svg')",
+				'gradient-purple': 'linear-gradient(135deg, #9b87f5 0%, #7E69AB 100%)',
 			}
 		}
 	},
