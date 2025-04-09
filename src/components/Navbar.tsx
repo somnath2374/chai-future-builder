@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Menu, X, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,9 +14,11 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 w-full backdrop-blur-sm bg-white/80 shadow-sm">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-educhain-darkPurple">
-            Edu<span className="text-educhain-purple">Chain</span>
-          </h1>
+          <Link to="/">
+            <h1 className="text-2xl font-bold text-educhain-darkPurple">
+              Edu<span className="text-educhain-purple">Chain</span>
+            </h1>
+          </Link>
         </div>
         
         {/* Desktop Navigation */}
@@ -35,17 +38,21 @@ const Navbar = () => {
         </nav>
         
         <div className="hidden md:flex items-center gap-4">
-          <Button
-            variant="ghost"
-            className="text-educhain-darkPurple hover:text-educhain-purple hover:bg-educhain-lightPurple transition-colors"
-          >
-            Log In
-          </Button>
-          <Button
-            className="bg-gradient-purple hover:opacity-90 transition-opacity"
-          >
-            Get Started <ChevronRight className="ml-1 h-4 w-4" />
-          </Button>
+          <Link to="/login">
+            <Button
+              variant="ghost"
+              className="text-educhain-darkPurple hover:text-educhain-purple hover:bg-educhain-lightPurple transition-colors"
+            >
+              Log In
+            </Button>
+          </Link>
+          <Link to="/register">
+            <Button
+              className="bg-gradient-to-r from-educhain-purple to-educhain-darkPurple hover:opacity-90 transition-opacity"
+            >
+              Get Started <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </Link>
         </div>
         
         {/* Mobile Menu Button */}
@@ -94,15 +101,23 @@ const Navbar = () => {
           </a>
         </nav>
         <div className="mt-6 space-y-4">
-          <Button
-            variant="ghost"
-            className="w-full text-educhain-darkPurple hover:text-educhain-purple hover:bg-educhain-lightPurple"
-          >
-            Log In
-          </Button>
-          <Button className="w-full bg-gradient-purple hover:opacity-90">
-            Get Started
-          </Button>
+          <Link to="/login" className="block w-full">
+            <Button
+              variant="ghost"
+              className="w-full text-educhain-darkPurple hover:text-educhain-purple hover:bg-educhain-lightPurple"
+              onClick={toggleMenu}
+            >
+              Log In
+            </Button>
+          </Link>
+          <Link to="/register" className="block w-full">
+            <Button 
+              className="w-full bg-gradient-to-r from-educhain-purple to-educhain-darkPurple hover:opacity-90"
+              onClick={toggleMenu}
+            >
+              Get Started
+            </Button>
+          </Link>
         </div>
       </div>
     </header>

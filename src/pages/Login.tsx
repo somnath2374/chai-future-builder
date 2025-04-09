@@ -1,0 +1,102 @@
+
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    // This will be replaced with actual Supabase auth once connected
+    console.log('Login attempt with:', { email, password });
+    
+    // Simulate API call
+    setTimeout(() => {
+      setLoading(false);
+      console.log('Login successful (simulated)');
+    }, 1000);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="container flex flex-1 items-center justify-center py-12 px-4 md:px-6">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <div className="flex items-center mb-4">
+              <Link to="/" className="inline-flex items-center mr-4 text-sm text-educhain-darkPurple hover:text-educhain-purple">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Home
+              </Link>
+            </div>
+            <CardTitle className="text-2xl font-bold">Sign in to EduChain</CardTitle>
+            <CardDescription>Enter your email and password to access your account</CardDescription>
+          </CardHeader>
+          <form onSubmit={handleLogin}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium">Email</label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="student@example.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-sm font-medium">Password</label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <input 
+                    type="checkbox" 
+                    id="remember" 
+                    className="rounded border-gray-300 text-educhain-purple focus:ring-educhain-purple"
+                  />
+                  <label htmlFor="remember" className="text-sm">Remember me</label>
+                </div>
+                <Link to="/forgot-password" className="text-sm text-educhain-purple hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col">
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-educhain-purple to-educhain-darkPurple hover:opacity-90"
+                disabled={loading}
+              >
+                {loading ? 'Signing in...' : 'Sign in'}
+              </Button>
+              <p className="mt-4 text-center text-sm">
+                Don't have an account?{" "}
+                <Link to="/register" className="text-educhain-purple hover:underline">
+                  Sign up
+                </Link>
+              </p>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default Login;

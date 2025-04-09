@@ -1,9 +1,32 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 
 const CTA = () => {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    // This would be replaced with an actual API call when connected to backend
+    console.log('Joining waitlist with email:', email);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setLoading(false);
+      toast({
+        title: "You're on the waitlist!",
+        description: "We'll notify you when EduChain is ready to launch.",
+      });
+      setEmail('');
+    }, 1000);
+  };
+
   return (
     <section className="py-16 md:py-24 bg-gray-50">
       <div className="container px-4 md:px-6">
@@ -16,16 +39,26 @@ const CTA = () => {
             No bank details required until full launch.
           </p>
           
-          <div className="w-full max-w-md flex flex-col sm:flex-row gap-3 mb-6">
-            <Input 
-              type="email" 
-              placeholder="Enter your email" 
-              className="h-12"
-            />
-            <Button size="lg" className="bg-gradient-purple hover:opacity-90">
-              Join Waitlist
-            </Button>
-          </div>
+          <form onSubmit={handleSubmit} className="w-full max-w-md mb-6">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Input 
+                type="email" 
+                placeholder="Enter your email" 
+                className="h-12"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <Button 
+                type="submit" 
+                size="lg" 
+                className="bg-gradient-to-r from-educhain-purple to-educhain-darkPurple hover:opacity-90"
+                disabled={loading}
+              >
+                {loading ? 'Joining...' : 'Join Waitlist'}
+              </Button>
+            </div>
+          </form>
           
           <p className="text-sm text-muted-foreground">
             By joining, you'll get early access and product updates. <br />
