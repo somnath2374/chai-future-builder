@@ -16,12 +16,12 @@ export const useWallet = () => {
       const walletData = await fetchWallet();
       setWallet(walletData);
       setError(null);
-    } catch (err) {
-      setError('Failed to fetch wallet data');
-      console.error(err);
+    } catch (err: any) {
+      console.error('Wallet fetch error:', err);
+      setError(err?.message || 'Failed to fetch wallet data');
       toast({
         title: "Error",
-        description: "Failed to load wallet data. Please try again.",
+        description: "Failed to load wallet data. Please check your Supabase connection.",
         variant: "destructive",
       });
     } finally {
@@ -51,11 +51,11 @@ export const useWallet = () => {
         return transaction;
       }
       return null;
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('Round-up error:', err);
       toast({
         title: "Transaction failed",
-        description: "Could not process your round-up. Please try again.",
+        description: err?.message || "Could not process your round-up. Please try again.",
         variant: "destructive",
       });
       return null;
@@ -63,7 +63,15 @@ export const useWallet = () => {
   };
 
   useEffect(() => {
-    getWallet();
+    // Only try to fetch wallet if Supabase is properly initialized
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (supabaseUrl) {
+      getWallet();
+    } else {
+      setLoading(false);
+      setError('Supabase configuration is missing');
+      console.error('Missing Supabase environment variables');
+    }
   }, []);
 
   return {

@@ -5,6 +5,7 @@ export interface Transaction {
   amount: number;
   description: string;
   created_at: string;
+  wallet_id?: string; // Add this to match Supabase schema
 }
 
 export interface Wallet {

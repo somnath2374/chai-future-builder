@@ -27,6 +27,10 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, loading }) => {
     );
   }
 
+  // Safe values with fallbacks
+  const balance = wallet?.balance || 0;
+  const roundupTotal = wallet?.roundup_total || 0;
+
   return (
     <Card className="bg-gradient-to-br from-purple-50 to-white">
       <CardHeader className="pb-2">
@@ -37,10 +41,12 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, loading }) => {
       </CardHeader>
       <CardContent>
         <div className="text-3xl font-bold">
-          {wallet ? `₹${wallet.balance.toFixed(2)}` : '₹0.00'}
+          ₹{balance.toFixed(2)}
         </div>
         <div className="text-sm text-muted-foreground mt-1">
-          {wallet ? `₹${wallet.roundup_total.toFixed(2)} from round-ups` : 'No round-ups yet'}
+          {roundupTotal > 0 
+            ? `₹${roundupTotal.toFixed(2)} from round-ups` 
+            : 'No round-ups yet'}
         </div>
       </CardContent>
     </Card>

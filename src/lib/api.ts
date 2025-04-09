@@ -3,8 +3,14 @@ import { createClient } from '@supabase/supabase-js';
 import { Wallet, Transaction } from '@/types/wallet';
 
 // Initialize Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+// Check if environment variables are set
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing Supabase environment variables. Please check your Supabase connection.');
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Auth functions
@@ -79,7 +85,7 @@ export const simulateRoundUp = async (amount: number, description: string): Prom
   // First get the wallet
   const { data: wallet, error: walletError } = await supabase
     .from('wallets')
-    .select('id, balance')
+    .select('id, balance, roundup_total')
     .eq('user_id', user.user.id)
     .single();
   
