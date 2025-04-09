@@ -1,28 +1,40 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { signIn } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    // This will be replaced with actual Supabase auth once connected
-    console.log('Login attempt with:', { email, password });
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await signIn(email, password);
+      toast({
+        title: "Welcome back!",
+        description: "You've successfully logged in.",
+      });
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        title: "Login failed",
+        description: "Please check your email and password and try again.",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-      console.log('Login successful (simulated)');
-    }, 1000);
+    }
   };
 
   return (
