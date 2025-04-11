@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { fetchWallet, simulateRoundUp, addDeposit } from '@/lib/api';
+import { fetchWallet, simulateRoundUp, addDeposit } from '@/lib/wallet';
 import { Wallet, Transaction } from '@/types/wallet';
 import { useToast } from '@/hooks/use-toast';
 

@@ -11,7 +11,7 @@ import DepositForm from '@/components/DepositForm';
 import LearningProgress from '@/components/LearningProgress';
 import EduScoreCard from '@/components/EduScoreCard';
 import FinancialTips from '@/components/FinancialTips';
-import { signOut, getCurrentUser } from '@/lib/api';
+import { signOut, getCurrentUser } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
