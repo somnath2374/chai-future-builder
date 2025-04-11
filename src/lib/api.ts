@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { Wallet, Transaction } from '@/types/wallet';
 
@@ -128,4 +127,86 @@ export const simulateRoundUp = async (amount: number, description: string): Prom
     .eq('id', wallet.id);
   
   return data as Transaction;
+};
+
+export const addDeposit = async (amount: number, description: string): Promise<Transaction | null> => {
+  const { data: user } = await supabase.auth.getUser();
+  
+  if (!user.user) {
+    throw new Error('User not authenticated');
+  }
+  
+  // First get the wallet
+  const { data: wallet, error: walletError } = await supabase
+    .from('wallets')
+    .select('id, balance')
+    .eq('user_id', user.user.id)
+    .single();
+  
+  if (walletError) {
+    console.error('Error fetching wallet:', walletError);
+    return null;
+  }
+  
+  // Add transaction
+  const { data, error } = await supabase
+    .from('transactions')
+    .insert({
+      wallet_id: wallet.id,
+      type: 'deposit',
+      amount: amount,
+      description: description || 'Manual deposit',
+      created_at: new Date().toISOString()
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating transaction:', error);
+    return null;
+  }
+  
+  // Update wallet balance
+  await supabase
+    .from('wallets')
+    .update({ 
+      balance: wallet.balance + amount,
+      last_transaction_date: new Date().toISOString()
+    })
+    .eq('id', wallet.id);
+  
+  return data as Transaction;
+};
+
+export const getLearningProgress = async () => {
+  const { data: user } = await supabase.auth.getUser();
+  
+  if (!user.user) {
+    throw new Error('User not authenticated');
+  }
+  
+  // In a real app, this would fetch from a learning_progress table
+  // For demo, we'll return static data
+  return {
+    completedLessons: 8,
+    totalLessons: 15,
+    availableRewards: 3,
+    lastCompleted: new Date().toISOString()
+  };
+};
+
+export const getEduScore = async () => {
+  const { data: user } = await supabase.auth.getUser();
+  
+  if (!user.user) {
+    throw new Error('User not authenticated');
+  }
+  
+  // In a real app, this would calculate based on savings behavior, learning progress, etc.
+  // For demo, we'll return static data
+  return {
+    score: 720,
+    change: 15,
+    lastUpdated: new Date().toISOString()
+  };
 };

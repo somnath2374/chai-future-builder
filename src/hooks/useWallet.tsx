@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { fetchWallet, simulateRoundUp } from '@/lib/api';
+import { fetchWallet, simulateRoundUp, addDeposit } from '@/lib/api';
 import { Wallet, Transaction } from '@/types/wallet';
 import { useToast } from '@/hooks/use-toast';
 
@@ -62,6 +62,38 @@ export const useWallet = () => {
     }
   };
 
+  // Add a direct deposit
+  const addDirectDeposit = async (amount: number, description: string) => {
+    try {
+      const transaction = await addDeposit(amount, description);
+      if (transaction && wallet) {
+        // Update local state
+        setWallet({
+          ...wallet,
+          balance: wallet.balance + transaction.amount,
+          last_transaction_date: transaction.created_at,
+          transactions: [transaction, ...wallet.transactions]
+        });
+        
+        toast({
+          title: "Deposit successful!",
+          description: `₹${transaction.amount.toFixed(2)} added to your wallet.`,
+        });
+        
+        return transaction;
+      }
+      return null;
+    } catch (err: any) {
+      console.error('Deposit error:', err);
+      toast({
+        title: "Transaction failed",
+        description: err?.message || "Could not process your deposit. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
   useEffect(() => {
     // Only try to fetch wallet if Supabase is properly initialized
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -79,6 +111,7 @@ export const useWallet = () => {
     loading,
     error,
     refreshWallet: getWallet,
-    addRoundUp
+    addRoundUp,
+    addDirectDeposit
   };
 };

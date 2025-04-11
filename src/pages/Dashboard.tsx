@@ -1,17 +1,22 @@
+
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Trophy, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useWallet } from '@/hooks/useWallet';
 import WalletCard from '@/components/WalletCard';
 import TransactionsList from '@/components/TransactionsList';
 import AddTransactionForm from '@/components/AddTransactionForm';
+import DepositForm from '@/components/DepositForm';
+import LearningProgress from '@/components/LearningProgress';
+import EduScoreCard from '@/components/EduScoreCard';
+import FinancialTips from '@/components/FinancialTips';
 import { signOut, getCurrentUser } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Dashboard = () => {
-  const { wallet, loading, addRoundUp, refreshWallet } = useWallet();
+  const { wallet, loading, addRoundUp, addDirectDeposit, refreshWallet } = useWallet();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [userName, setUserName] = useState<string | null>(null);
@@ -69,36 +74,8 @@ const Dashboard = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <WalletCard wallet={wallet} loading={loading} />
-
-          <Card className="bg-gradient-to-br from-purple-50 to-white">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-educhain-purple" />
-                EduScore
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">720</div>
-              <div className="text-sm text-green-600 mt-1">
-                +15 points this week 📈
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-purple-50 to-white">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-educhain-purple" />
-                Learning Progress
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">8 Lessons</div>
-              <div className="text-sm text-muted-foreground mt-1">
-                3 rewards available
-              </div>
-            </CardContent>
-          </Card>
+          <EduScoreCard />
+          <LearningProgress />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -108,8 +85,20 @@ const Dashboard = () => {
               loading={loading} 
             />
           </div>
-          <div>
-            <AddTransactionForm onAddRoundUp={addRoundUp} />
+          <div className="space-y-6">
+            <Tabs defaultValue="roundup">
+              <TabsList className="w-full">
+                <TabsTrigger value="roundup" className="flex-1">Round-Up</TabsTrigger>
+                <TabsTrigger value="deposit" className="flex-1">Deposit</TabsTrigger>
+              </TabsList>
+              <TabsContent value="roundup">
+                <AddTransactionForm onAddRoundUp={addRoundUp} />
+              </TabsContent>
+              <TabsContent value="deposit">
+                <DepositForm onAddDeposit={addDirectDeposit} />
+              </TabsContent>
+            </Tabs>
+            <FinancialTips />
           </div>
         </div>
       </main>
