@@ -6,26 +6,53 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 // Check if environment variables are set
-if (!supabaseUrl || !supabaseKey) {
+const hasSupabaseConfig = supabaseUrl && supabaseKey;
+
+if (!hasSupabaseConfig) {
   console.error('Missing Supabase environment variables. Please check your Supabase connection.');
 }
 
-// Initialize with fallback values to prevent runtime errors
-// Note: API calls will fail gracefully if credentials are invalid
-export const supabase = createClient(
-  supabaseUrl, 
-  supabaseKey,
-  {
+// Create a dummy client when credentials are missing to prevent runtime errors
+const createDummyClient = () => {
+  return {
     auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    }
-  }
-);
+      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+      signInWithPassword: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+      signOut: () => Promise.resolve({ error: null })
+    },
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          single: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+          order: () => Promise.resolve({ data: [], error: null })
+        }),
+        order: () => Promise.resolve({ data: [], error: null })
+      }),
+      insert: () => ({
+        select: () => ({
+          single: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') })
+        })
+      }),
+      update: () => ({
+        eq: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') })
+      })
+    })
+  };
+};
+
+// Initialize with fallback to dummy client to prevent runtime errors
+export const supabase = hasSupabaseConfig 
+  ? createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+      }
+    })
+  : createDummyClient() as any;
 
 // Helper function to check if Supabase is configured
 export const checkSupabaseConfig = () => {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!hasSupabaseConfig) {
     throw new Error('Supabase configuration is missing. Please set up your Supabase connection.');
   }
 };
