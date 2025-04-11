@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, ArrowUp, ArrowDown } from "lucide-react";
 import { getEduScore } from '@/lib/education';
+import { toast } from 'sonner';
 
 const EduScoreCard = () => {
   const [score, setScore] = useState({
@@ -11,15 +12,22 @@ const EduScoreCard = () => {
     lastUpdated: '',
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const fetchScore = async () => {
       try {
         setLoading(true);
+        setError(false);
         const data = await getEduScore();
         setScore(data);
       } catch (error) {
         console.error('Error fetching EduScore:', error);
+        setError(true);
+        // Show a toast message about the error
+        toast.error("Could not load EduScore data", {
+          description: "Please check your Supabase connection"
+        });
       } finally {
         setLoading(false);
       }
@@ -40,6 +48,25 @@ const EduScoreCard = () => {
         <CardContent>
           <div className="h-8 w-24 bg-gray-200 animate-pulse rounded-md mb-2"></div>
           <div className="h-4 w-40 bg-gray-200 animate-pulse rounded-md"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="bg-gradient-to-br from-purple-50 to-white">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-educhain-purple" />
+            EduScore
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold">--</div>
+          <div className="text-sm text-muted-foreground mt-1">
+            Connect Supabase to track your EduScore
+          </div>
         </CardContent>
       </Card>
     );
