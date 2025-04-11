@@ -95,15 +95,22 @@ export const useWallet = () => {
   };
 
   useEffect(() => {
-    // Only try to fetch wallet if Supabase is properly initialized
+    // Check if Supabase is configured before trying to fetch wallet
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    if (supabaseUrl) {
-      getWallet();
-    } else {
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
       setLoading(false);
-      setError('Supabase configuration is missing');
-      console.error('Missing Supabase environment variables');
+      setError('Supabase configuration is missing. Please connect to Supabase in the interface.');
+      toast({
+        title: "Connection missing",
+        description: "Please connect to Supabase using the green button at the top right.",
+        variant: "destructive",
+      });
+      return;
     }
+    
+    getWallet();
   }, []);
 
   return {

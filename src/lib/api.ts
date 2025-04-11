@@ -1,7 +1,8 @@
+
 import { createClient } from '@supabase/supabase-js';
 import { Wallet, Transaction } from '@/types/wallet';
 
-// Initialize Supabase client
+// Initialize Supabase client with fallback to empty strings for development without causing crashes
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
@@ -10,10 +11,25 @@ if (!supabaseUrl || !supabaseKey) {
   console.error('Missing Supabase environment variables. Please check your Supabase connection.');
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Initialize with fallback values to prevent runtime errors
+// Note: API calls will fail gracefully if credentials are invalid
+const supabase = createClient(
+  supabaseUrl, 
+  supabaseKey,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    }
+  }
+);
 
 // Auth functions
 export const signIn = async (email: string, password: string) => {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase configuration is missing. Please set up your Supabase connection.');
+  }
+  
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -24,11 +40,19 @@ export const signIn = async (email: string, password: string) => {
 };
 
 export const signOut = async () => {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase configuration is missing. Please set up your Supabase connection.');
+  }
+  
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 };
 
 export const getCurrentUser = async () => {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase configuration is missing. Please set up your Supabase connection.');
+  }
+  
   const { data, error } = await supabase.auth.getUser();
   if (error) throw error;
   return data.user;
@@ -36,6 +60,10 @@ export const getCurrentUser = async () => {
 
 // Wallet functions
 export const fetchWallet = async (): Promise<Wallet | null> => {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase configuration is missing. Please set up your Supabase connection.');
+  }
+  
   const { data: user } = await supabase.auth.getUser();
   
   if (!user.user) {
@@ -72,6 +100,10 @@ export const fetchWallet = async (): Promise<Wallet | null> => {
 
 // Transaction functions
 export const simulateRoundUp = async (amount: number, description: string): Promise<Transaction | null> => {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase configuration is missing. Please set up your Supabase connection.');
+  }
+  
   // In a real app, this would connect to a payment processor
   // For now, we'll simulate it by directly adding a transaction
   
@@ -130,6 +162,10 @@ export const simulateRoundUp = async (amount: number, description: string): Prom
 };
 
 export const addDeposit = async (amount: number, description: string): Promise<Transaction | null> => {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase configuration is missing. Please set up your Supabase connection.');
+  }
+  
   const { data: user } = await supabase.auth.getUser();
   
   if (!user.user) {
@@ -179,6 +215,10 @@ export const addDeposit = async (amount: number, description: string): Promise<T
 };
 
 export const getLearningProgress = async () => {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase configuration is missing. Please set up your Supabase connection.');
+  }
+  
   const { data: user } = await supabase.auth.getUser();
   
   if (!user.user) {
@@ -196,6 +236,10 @@ export const getLearningProgress = async () => {
 };
 
 export const getEduScore = async () => {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase configuration is missing. Please set up your Supabase connection.');
+  }
+  
   const { data: user } = await supabase.auth.getUser();
   
   if (!user.user) {
