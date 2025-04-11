@@ -1,10 +1,8 @@
 
-import { supabase, checkSupabaseConfig } from './supabase';
+import { supabase } from './supabase';
 
 export const signIn = async (email: string, password: string) => {
   try {
-    checkSupabaseConfig();
-    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -18,10 +16,28 @@ export const signIn = async (email: string, password: string) => {
   }
 };
 
+export const signUp = async (email: string, password: string, fullName: string) => {
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        },
+      },
+    });
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Sign up error:', error);
+    throw error;
+  }
+};
+
 export const signOut = async () => {
   try {
-    checkSupabaseConfig();
-    
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   } catch (error) {
@@ -32,8 +48,6 @@ export const signOut = async () => {
 
 export const getCurrentUser = async () => {
   try {
-    checkSupabaseConfig();
-    
     const { data, error } = await supabase.auth.getUser();
     if (error) throw error;
     return data.user;
