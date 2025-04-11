@@ -46,7 +46,7 @@ const Register = () => {
       await signUp(email, password, name);
       toast({
         title: "Account created!",
-        description: "Welcome to EduChain! You can now sign in with your credentials.",
+        description: "Please check your email for a confirmation link. You can then sign in with your credentials.",
       });
       navigate('/login');
     } catch (error: any) {
