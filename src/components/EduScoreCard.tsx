@@ -1,15 +1,16 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, ArrowUp, ArrowDown } from "lucide-react";
 import { getEduScore } from '@/lib/education';
 
 const EduScoreCard = () => {
-  const [score, setScore({
+  const [score, setScore] = useState({
     score: 0,
     change: 0,
     lastUpdated: '',
   });
-  const [loading, setLoading(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchScore = async () => {
