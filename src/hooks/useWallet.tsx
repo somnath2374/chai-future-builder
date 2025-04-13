@@ -50,10 +50,11 @@ export const useWallet = () => {
   const addRoundUp = async (amount: number, description: string) => {
     try {
       const transaction = await simulateRoundUp(amount, description);
-      if (transaction && wallet) {
-        // Refresh wallet data to ensure we have the latest balance
-        await getWallet();
-        
+      
+      // Refresh wallet data to ensure we have the latest balance
+      await getWallet();
+      
+      if (transaction) {
         toast({
           title: "Round-up saved!",
           description: `₹${transaction.amount.toFixed(2)} added to your wallet.`,
@@ -83,10 +84,11 @@ export const useWallet = () => {
   const addDirectDeposit = async (amount: number, description: string) => {
     try {
       const transaction = await addDeposit(amount, description);
-      if (transaction && wallet) {
-        // Refresh wallet data to ensure we have the latest balance
-        await getWallet();
-        
+      
+      // Refresh wallet data to ensure we have the latest balance
+      await getWallet();
+      
+      if (transaction) {
         toast({
           title: "Deposit successful!",
           description: `₹${transaction.amount.toFixed(2)} added to your wallet.`,

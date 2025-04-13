@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { LogOut, PiggyBank, Wallet, ArrowDownCircle, CircleDollarSign } from "lucide-react";
+import { LogOut, PiggyBank, Wallet, ArrowDownCircle, CircleDollarSign, BookOpen } from "lucide-react";
 import { useWallet } from '@/hooks/useWallet';
 import WalletCard from '@/components/WalletCard';
 import TransactionsList from '@/components/TransactionsList';
@@ -78,6 +78,14 @@ const Dashboard = () => {
             </h1>
           </div>
           <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/lessons')}
+              className="text-educhain-purple"
+            >
+              <BookOpen className="h-4 w-4 mr-1" />
+              Learn
+            </Button>
             <div className="hidden md:block">
               <span className="font-medium">Welcome, {userName || 'User'}</span>
             </div>

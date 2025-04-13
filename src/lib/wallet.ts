@@ -12,15 +12,42 @@ export const fetchWallet = async (): Promise<Wallet | null> => {
     throw new Error('User not authenticated');
   }
   
+  // First check if wallet exists
   const { data, error } = await supabase
     .from('wallets')
     .select('*')
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
   
   if (error) {
     console.error('Error fetching wallet:', error);
-    return null;
+    throw error;
+  }
+  
+  // If wallet doesn't exist, create one
+  if (!data) {
+    const { data: newWallet, error: createError } = await supabase
+      .from('wallets')
+      .insert({
+        user_id: user.id,
+        balance: 0,
+        roundup_total: 0,
+        rewards_earned: 0,
+        last_transaction_date: new Date().toISOString()
+      })
+      .select()
+      .single();
+      
+    if (createError) {
+      console.error('Error creating wallet:', createError);
+      throw createError;
+    }
+    
+    // Return new wallet with empty transactions
+    return {
+      ...newWallet,
+      transactions: []
+    } as Wallet;
   }
   
   // Now fetch transactions for this wallet
@@ -43,9 +70,6 @@ export const fetchWallet = async (): Promise<Wallet | null> => {
 export const simulateRoundUp = async (amount: number, description: string): Promise<Transaction | null> => {
   checkSupabaseConfig();
   
-  // In a real app, this would connect to a payment processor
-  // For now, we'll simulate it by directly adding a transaction
-  
   const user = await getCurrentUser();
   
   if (!user) {
@@ -53,19 +77,14 @@ export const simulateRoundUp = async (amount: number, description: string): Prom
   }
   
   // First get the wallet
-  const { data: wallet, error: walletError } = await supabase
-    .from('wallets')
-    .select('id, balance, roundup_total')
-    .eq('user_id', user.id)
-    .maybeSingle();
+  const wallet = await fetchWallet();
   
-  if (walletError || !wallet) {
-    console.error('Error fetching wallet:', walletError);
-    return null;
+  if (!wallet) {
+    console.error('No wallet found for user');
+    throw new Error('No wallet found for user');
   }
   
   // Calculate roundup (between 5-10 rupees)
-  const originalAmount = amount;
   const randomRoundupAmount = Math.random() * 5 + 5; // Random amount between 5-10
   const roundupAmount = Math.floor(randomRoundupAmount * 100) / 100; // Round to 2 decimal places
   
@@ -84,7 +103,7 @@ export const simulateRoundUp = async (amount: number, description: string): Prom
   
   if (error) {
     console.error('Error creating transaction:', error);
-    return null;
+    throw error;
   }
   
   // Update wallet balance with the new values
@@ -102,6 +121,7 @@ export const simulateRoundUp = async (amount: number, description: string): Prom
   
   if (updateError) {
     console.error('Error updating wallet balance:', updateError);
+    throw updateError;
   }
   
   return data as Transaction;
@@ -117,15 +137,11 @@ export const addDeposit = async (amount: number, description: string): Promise<T
   }
   
   // First get the wallet
-  const { data: wallet, error: walletError } = await supabase
-    .from('wallets')
-    .select('id, balance')
-    .eq('user_id', user.id)
-    .maybeSingle();
+  const wallet = await fetchWallet();
   
-  if (walletError || !wallet) {
-    console.error('Error fetching wallet:', walletError);
-    return null;
+  if (!wallet) {
+    console.error('No wallet found for user');
+    throw new Error('No wallet found for user');
   }
   
   // Add transaction
@@ -143,7 +159,7 @@ export const addDeposit = async (amount: number, description: string): Promise<T
   
   if (error) {
     console.error('Error creating transaction:', error);
-    return null;
+    throw error;
   }
   
   // Calculate new balance
@@ -160,6 +176,7 @@ export const addDeposit = async (amount: number, description: string): Promise<T
   
   if (updateError) {
     console.error('Error updating wallet balance:', updateError);
+    throw updateError;
   }
   
   return data as Transaction;
