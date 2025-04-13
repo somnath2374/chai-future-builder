@@ -23,7 +23,6 @@ const formSchema = z.object({
 
 const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddRoundUp }) => {
   const [loading, setLoading] = useState(false);
-  const [roundupAmount, setRoundupAmount] = useState<number | null>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -33,37 +32,11 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddRoundUp })
     },
   });
 
-  // Calculate the roundup amount when the original amount changes
-  const calculateRoundup = (value: string) => {
-    if (!value || isNaN(parseFloat(value))) {
-      setRoundupAmount(null);
-      return;
-    }
-    
-    const originalAmount = parseFloat(value);
-    const roundedAmount = Math.ceil(originalAmount);
-    const diff = roundedAmount - originalAmount;
-    
-    // Show the roundup amount with 2 decimal places
-    setRoundupAmount(parseFloat(diff.toFixed(2)));
-  };
-
-  React.useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === 'amount') {
-        calculateRoundup(value.amount as string);
-      }
-    });
-    
-    return () => subscription.unsubscribe();
-  }, [form.watch]);
-
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
       await onAddRoundUp(parseFloat(data.amount), data.description || "Manual round-up");
       form.reset();
-      setRoundupAmount(null);
     } catch (error) {
       console.error('Error adding round-up:', error);
     } finally {
@@ -79,7 +52,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddRoundUp })
           Simulate Round-Up
         </CardTitle>
         <CardDescription>
-          Round up a purchase amount and save the difference
+          Add a ₹5-10 round-up to your savings
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -97,10 +70,6 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddRoundUp })
                       step="0.01"
                       placeholder="46.50"
                       {...field}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        calculateRoundup(e.target.value);
-                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -108,12 +77,10 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddRoundUp })
               )}
             />
             
-            {roundupAmount !== null && (
-              <div className="px-3 py-2 bg-educhain-lightPurple rounded-md text-sm">
-                <span className="font-medium">Roundup amount: </span>
-                <span className="text-educhain-darkPurple">₹{roundupAmount.toFixed(2)}</span>
-              </div>
-            )}
+            <div className="px-3 py-2 bg-educhain-lightPurple rounded-md text-sm">
+              <span className="font-medium">Roundup amount: </span>
+              <span className="text-educhain-darkPurple">₹5.00 - ₹10.00 (random)</span>
+            </div>
             
             <FormField
               control={form.control}

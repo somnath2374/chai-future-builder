@@ -57,17 +57,17 @@ export const simulateRoundUp = async (amount: number, description: string): Prom
     .from('wallets')
     .select('id, balance, roundup_total')
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
   
-  if (walletError) {
+  if (walletError || !wallet) {
     console.error('Error fetching wallet:', walletError);
     return null;
   }
   
-  // Calculate roundup (next whole unit)
+  // Calculate roundup (between 5-10 rupees)
   const originalAmount = amount;
-  const roundedAmount = Math.ceil(amount);
-  const roundupAmount = roundedAmount - originalAmount;
+  const randomRoundupAmount = Math.random() * 5 + 5; // Random amount between 5-10
+  const roundupAmount = Math.floor(randomRoundupAmount * 100) / 100; // Round to 2 decimal places
   
   // Add transaction
   const { data, error } = await supabase
@@ -87,15 +87,22 @@ export const simulateRoundUp = async (amount: number, description: string): Prom
     return null;
   }
   
-  // Update wallet balance
-  await supabase
+  // Update wallet balance with the new values
+  const newBalance = (wallet.balance || 0) + roundupAmount;
+  const newRoundupTotal = (wallet.roundup_total || 0) + roundupAmount;
+  
+  const { error: updateError } = await supabase
     .from('wallets')
     .update({ 
-      balance: wallet.balance + roundupAmount,
-      roundup_total: wallet.roundup_total + roundupAmount,
+      balance: newBalance,
+      roundup_total: newRoundupTotal,
       last_transaction_date: new Date().toISOString()
     })
     .eq('id', wallet.id);
+  
+  if (updateError) {
+    console.error('Error updating wallet balance:', updateError);
+  }
   
   return data as Transaction;
 };
@@ -114,9 +121,9 @@ export const addDeposit = async (amount: number, description: string): Promise<T
     .from('wallets')
     .select('id, balance')
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
   
-  if (walletError) {
+  if (walletError || !wallet) {
     console.error('Error fetching wallet:', walletError);
     return null;
   }
@@ -139,14 +146,21 @@ export const addDeposit = async (amount: number, description: string): Promise<T
     return null;
   }
   
+  // Calculate new balance
+  const newBalance = (wallet.balance || 0) + amount;
+  
   // Update wallet balance
-  await supabase
+  const { error: updateError } = await supabase
     .from('wallets')
     .update({ 
-      balance: wallet.balance + amount,
+      balance: newBalance,
       last_transaction_date: new Date().toISOString()
     })
     .eq('id', wallet.id);
+  
+  if (updateError) {
+    console.error('Error updating wallet balance:', updateError);
+  }
   
   return data as Transaction;
 };

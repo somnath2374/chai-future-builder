@@ -51,14 +51,8 @@ export const useWallet = () => {
     try {
       const transaction = await simulateRoundUp(amount, description);
       if (transaction && wallet) {
-        // Update local state
-        setWallet({
-          ...wallet,
-          balance: wallet.balance + transaction.amount,
-          roundup_total: wallet.roundup_total + transaction.amount,
-          last_transaction_date: transaction.created_at,
-          transactions: [transaction, ...wallet.transactions]
-        });
+        // Refresh wallet data to ensure we have the latest balance
+        await getWallet();
         
         toast({
           title: "Round-up saved!",
@@ -90,13 +84,8 @@ export const useWallet = () => {
     try {
       const transaction = await addDeposit(amount, description);
       if (transaction && wallet) {
-        // Update local state
-        setWallet({
-          ...wallet,
-          balance: wallet.balance + transaction.amount,
-          last_transaction_date: transaction.created_at,
-          transactions: [transaction, ...wallet.transactions]
-        });
+        // Refresh wallet data to ensure we have the latest balance
+        await getWallet();
         
         toast({
           title: "Deposit successful!",
