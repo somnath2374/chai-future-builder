@@ -26,14 +26,16 @@ export const useWallet = () => {
       }
       
       const walletData = await fetchWallet();
-      setWallet(walletData);
-      setError(null);
+      if (walletData) {
+        setWallet(walletData);
+        setError(null);
+      }
     } catch (err: any) {
       console.error('Wallet fetch error:', err);
       setError(err?.message || 'Failed to fetch wallet data');
       toast({
         title: "Error",
-        description: "Failed to load wallet data. Please check your Supabase connection.",
+        description: "Failed to load wallet data. Please try again.",
         variant: "destructive",
       });
       
@@ -49,6 +51,17 @@ export const useWallet = () => {
   // Add a transaction and update the wallet
   const addRoundUp = async (amount: number, description: string) => {
     try {
+      const user = await getCurrentUser();
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to continue.",
+          variant: "destructive",
+        });
+        navigate('/login');
+        return null;
+      }
+
       const transaction = await simulateRoundUp(amount, description);
       
       // Refresh wallet data to ensure we have the latest balance
@@ -83,6 +96,17 @@ export const useWallet = () => {
   // Add a direct deposit
   const addDirectDeposit = async (amount: number, description: string) => {
     try {
+      const user = await getCurrentUser();
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to continue.",
+          variant: "destructive",
+        });
+        navigate('/login');
+        return null;
+      }
+
       const transaction = await addDeposit(amount, description);
       
       // Refresh wallet data to ensure we have the latest balance
