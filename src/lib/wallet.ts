@@ -27,7 +27,7 @@ export const fetchWallet = async (): Promise<Wallet | null> => {
   const { data: transactions, error: txError } = await supabase
     .from('transactions')
     .select('*')
-    .eq('wallet_id', data?.id)
+    .eq('wallet_id', data.id)
     .order('created_at', { ascending: false });
   
   if (txError) {
@@ -73,7 +73,7 @@ export const simulateRoundUp = async (amount: number, description: string): Prom
   const { data, error } = await supabase
     .from('transactions')
     .insert({
-      wallet_id: wallet?.id,
+      wallet_id: wallet.id,
       type: 'round-up',
       amount: roundupAmount,
       description: description,
@@ -88,16 +88,14 @@ export const simulateRoundUp = async (amount: number, description: string): Prom
   }
   
   // Update wallet balance
-  if (wallet) {
-    await supabase
-      .from('wallets')
-      .update({ 
-        balance: wallet.balance + roundupAmount,
-        roundup_total: wallet.roundup_total + roundupAmount,
-        last_transaction_date: new Date().toISOString()
-      })
-      .eq('id', wallet.id);
-  }
+  await supabase
+    .from('wallets')
+    .update({ 
+      balance: wallet.balance + roundupAmount,
+      roundup_total: wallet.roundup_total + roundupAmount,
+      last_transaction_date: new Date().toISOString()
+    })
+    .eq('id', wallet.id);
   
   return data as Transaction;
 };
@@ -127,7 +125,7 @@ export const addDeposit = async (amount: number, description: string): Promise<T
   const { data, error } = await supabase
     .from('transactions')
     .insert({
-      wallet_id: wallet?.id,
+      wallet_id: wallet.id,
       type: 'deposit',
       amount: amount,
       description: description || 'Manual deposit',
@@ -142,15 +140,13 @@ export const addDeposit = async (amount: number, description: string): Promise<T
   }
   
   // Update wallet balance
-  if (wallet) {
-    await supabase
-      .from('wallets')
-      .update({ 
-        balance: wallet.balance + amount,
-        last_transaction_date: new Date().toISOString()
-      })
-      .eq('id', wallet.id);
-  }
+  await supabase
+    .from('wallets')
+    .update({ 
+      balance: wallet.balance + amount,
+      last_transaction_date: new Date().toISOString()
+    })
+    .eq('id', wallet.id);
   
   return data as Transaction;
 };

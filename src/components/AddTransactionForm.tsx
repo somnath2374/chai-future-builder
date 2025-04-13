@@ -2,32 +2,70 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { CircleDollarSign } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 interface AddTransactionFormProps {
   onAddRoundUp: (amount: number, description: string) => Promise<any>;
 }
 
-const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddRoundUp }) => {
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [loading, setLoading] = useState(false);
+const formSchema = z.object({
+  amount: z.string().min(1, "Amount is required").refine(
+    (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
+    { message: "Amount must be greater than 0" }
+  ),
+  description: z.string().optional(),
+});
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!amount || parseFloat(amount) <= 0) {
+const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddRoundUp }) => {
+  const [loading, setLoading] = useState(false);
+  const [roundupAmount, setRoundupAmount] = useState<number | null>(null);
+  
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      amount: "",
+      description: "",
+    },
+  });
+
+  // Calculate the roundup amount when the original amount changes
+  const calculateRoundup = (value: string) => {
+    if (!value || isNaN(parseFloat(value))) {
+      setRoundupAmount(null);
       return;
     }
     
+    const originalAmount = parseFloat(value);
+    const roundedAmount = Math.ceil(originalAmount);
+    const diff = roundedAmount - originalAmount;
+    
+    // Show the roundup amount with 2 decimal places
+    setRoundupAmount(parseFloat(diff.toFixed(2)));
+  };
+
+  React.useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'amount') {
+        calculateRoundup(value.amount as string);
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
-      await onAddRoundUp(parseFloat(amount), description || 'Manual round-up');
-      // Reset form
-      setAmount('');
-      setDescription('');
+      await onAddRoundUp(parseFloat(data.amount), data.description || "Manual round-up");
+      form.reset();
+      setRoundupAmount(null);
     } catch (error) {
-      console.error('Error adding transaction:', error);
+      console.error('Error adding round-up:', error);
     } finally {
       setLoading(false);
     }
@@ -36,48 +74,73 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddRoundUp })
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Simulate Round-Up</CardTitle>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <CircleDollarSign className="h-5 w-5 text-educhain-purple" />
+          Simulate Round-Up
+        </CardTitle>
+        <CardDescription>
+          Round up a purchase amount and save the difference
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="amount" className="text-sm font-medium">
-              Original Amount (₹)
-            </label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              placeholder="46.50"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Original Amount (₹)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="46.50"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        calculateRoundup(e.target.value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            <div className="text-sm text-muted-foreground">
-              We'll round this up to the nearest rupee and save the difference.
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <label htmlFor="description" className="text-sm font-medium">
-              Description
-            </label>
-            <Input
-              id="description"
-              placeholder="Coffee at Starbucks"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+            
+            {roundupAmount !== null && (
+              <div className="px-3 py-2 bg-educhain-lightPurple rounded-md text-sm">
+                <span className="font-medium">Roundup amount: </span>
+                <span className="text-educhain-darkPurple">₹{roundupAmount.toFixed(2)}</span>
+              </div>
+            )}
+            
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Coffee at Starbucks"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          
-          <Button 
-            type="submit" 
-            className="w-full bg-gradient-to-r from-educhain-purple to-educhain-darkPurple hover:opacity-90"
-            disabled={loading}
-          >
-            {loading ? 'Processing...' : 'Simulate Round-Up'}
-          </Button>
-        </form>
+            
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-educhain-purple to-educhain-darkPurple hover:opacity-90"
+              disabled={loading}
+            >
+              {loading ? 'Processing...' : 'Save Round-Up'}
+            </Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );

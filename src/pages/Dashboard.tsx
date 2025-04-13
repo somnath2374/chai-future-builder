@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, PiggyBank, Wallet, ArrowDownCircle, CircleDollarSign } from "lucide-react";
 import { useWallet } from '@/hooks/useWallet';
 import WalletCard from '@/components/WalletCard';
 import TransactionsList from '@/components/TransactionsList';
@@ -14,21 +14,30 @@ import FinancialTips from '@/components/FinancialTips';
 import { signOut, getCurrentUser } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Dashboard = () => {
   const { wallet, loading, addRoundUp, addDirectDeposit, refreshWallet } = useWallet();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [userName, setUserName] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        setIsLoading(true);
         const user = await getCurrentUser();
+        if (!user) {
+          navigate('/login');
+          return;
+        }
         setUserName(user.email?.split('@')[0] || 'User');
       } catch (error) {
         console.error('Auth error:', error);
         navigate('/login');
+      } finally {
+        setIsLoading(false);
       }
     };
     
@@ -48,9 +57,20 @@ const Dashboard = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <PiggyBank className="h-12 w-12 mx-auto mb-4 text-educhain-purple animate-pulse" />
+          <h2 className="text-xl font-semibold">Loading your dashboard...</h2>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b sticky top-0 z-10">
         <div className="container py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-educhain-darkPurple">
@@ -70,7 +90,17 @@ const Dashboard = () => {
       </header>
 
       <main className="container py-8">
-        <h2 className="text-2xl font-bold mb-6">Your Financial Dashboard</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Your Financial Dashboard</h2>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={refreshWallet} 
+            className="text-educhain-purple"
+          >
+            Refresh Data
+          </Button>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <WalletCard wallet={wallet} loading={loading} />
@@ -88,8 +118,14 @@ const Dashboard = () => {
           <div className="space-y-6">
             <Tabs defaultValue="roundup">
               <TabsList className="w-full">
-                <TabsTrigger value="roundup" className="flex-1">Round-Up</TabsTrigger>
-                <TabsTrigger value="deposit" className="flex-1">Deposit</TabsTrigger>
+                <TabsTrigger value="roundup" className="flex-1 flex items-center justify-center gap-2">
+                  <CircleDollarSign className="h-4 w-4" />
+                  <span>Round-Up</span>
+                </TabsTrigger>
+                <TabsTrigger value="deposit" className="flex-1 flex items-center justify-center gap-2">
+                  <ArrowDownCircle className="h-4 w-4" />
+                  <span>Deposit</span>
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="roundup">
                 <AddTransactionForm onAddRoundUp={addRoundUp} />

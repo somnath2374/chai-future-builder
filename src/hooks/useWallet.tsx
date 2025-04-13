@@ -3,16 +3,28 @@ import { useState, useEffect } from 'react';
 import { fetchWallet, simulateRoundUp, addDeposit } from '@/lib/wallet';
 import { Wallet, Transaction } from '@/types/wallet';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { getCurrentUser } from '@/lib/auth';
 
 export const useWallet = () => {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const getWallet = async () => {
     try {
       setLoading(true);
+      
+      // Check if user is authenticated first
+      const user = await getCurrentUser();
+      if (!user) {
+        setError('User not authenticated');
+        navigate('/login');
+        return;
+      }
+      
       const walletData = await fetchWallet();
       setWallet(walletData);
       setError(null);
@@ -24,6 +36,11 @@ export const useWallet = () => {
         description: "Failed to load wallet data. Please check your Supabase connection.",
         variant: "destructive",
       });
+      
+      // If authentication error, redirect to login
+      if (err.message === 'User not authenticated') {
+        navigate('/login');
+      }
     } finally {
       setLoading(false);
     }
@@ -58,6 +75,12 @@ export const useWallet = () => {
         description: err?.message || "Could not process your round-up. Please try again.",
         variant: "destructive",
       });
+      
+      // If authentication error, redirect to login
+      if (err.message === 'User not authenticated') {
+        navigate('/login');
+      }
+      
       return null;
     }
   };
@@ -90,6 +113,12 @@ export const useWallet = () => {
         description: err?.message || "Could not process your deposit. Please try again.",
         variant: "destructive",
       });
+      
+      // If authentication error, redirect to login
+      if (err.message === 'User not authenticated') {
+        navigate('/login');
+      }
+      
       return null;
     }
   };
