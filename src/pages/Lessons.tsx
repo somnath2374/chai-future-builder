@@ -1,15 +1,13 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { LogOut, BookOpen, Award, Video, FileText, HelpCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { completeLesson } from '@/lib/education';
 import { getCurrentUser, signOut } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
+import { useEduScore } from '@/hooks/useEduScore';
 
 // Sample lesson data
 const lessons = [
@@ -104,9 +102,9 @@ const quizzes = [
 const Lessons = () => {
   const [userName, setUserName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { score, loading: eduScoreLoading, completeLesson } = useEduScore();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -143,26 +141,16 @@ const Lessons = () => {
   };
 
   const handleCompleteLesson = async (lessonId: string) => {
-    try {
-      const result = await completeLesson(lessonId);
-      if (result.success) {
-        setCompletedLessonIds(prev => [...prev, lessonId]);
-        toast({
-          title: "Lesson Completed!",
-          description: `You earned ${result.scoreEarned} points for your EduScore.`,
-        });
-      }
-    } catch (error) {
-      console.error('Error completing lesson:', error);
+    const result = await completeLesson(lessonId);
+    if (result.success) {
       toast({
-        title: "Error",
-        description: "Could not complete the lesson. Please try again.",
-        variant: "destructive",
+        title: "Lesson Completed!",
+        description: `You earned ${result.scoreEarned} points for your EduScore.`,
       });
     }
   };
 
-  if (isLoading) {
+  if (isLoading || eduScoreLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -172,6 +160,9 @@ const Lessons = () => {
       </div>
     );
   }
+
+  const completedLessonIds = score?.completed_lessons || [];
+  const currentScore = score?.score || 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -206,7 +197,7 @@ const Lessons = () => {
           <h2 className="text-2xl font-bold">Financial Education Center</h2>
           <div className="flex items-center gap-2">
             <Award className="text-yellow-500 h-5 w-5" />
-            <span className="font-semibold">Your EduScore: {completedLessonIds.length * 10}</span>
+            <span className="font-semibold">Your EduScore: {currentScore}</span>
           </div>
         </div>
 

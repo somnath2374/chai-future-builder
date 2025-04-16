@@ -12,17 +12,55 @@ export const getLearningProgress = async () => {
       throw new Error('User not authenticated');
     }
     
-    // In a real app, this would fetch from a learning_progress table
-    // For demo, we'll return static data
+    // Get the user's EduScore from the database
+    const { data, error } = await supabase
+      .from('edu_scores')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Error fetching EduScore:', error);
+      throw error;
+    }
+    
+    // If no EduScore exists, create one
+    if (!data) {
+      const { data: newScore, error: createError } = await supabase
+        .from('edu_scores')
+        .insert({
+          user_id: user.id,
+          score: 0,
+          completed_lessons: [],
+        })
+        .select()
+        .single();
+      
+      if (createError) {
+        console.error('Error creating EduScore:', createError);
+        throw createError;
+      }
+      
+      return {
+        completedLessons: 0,
+        totalLessons: 15,
+        availableRewards: 0,
+        lastCompleted: newScore.last_updated
+      };
+    }
+    
+    // Calculate available rewards based on completed lessons
+    const availableRewards = Math.floor(data.completed_lessons.length / 2);
+    
     return {
-      completedLessons: 0,
+      completedLessons: data.completed_lessons.length,
       totalLessons: 15,
-      availableRewards: 0,
-      lastCompleted: new Date().toISOString()
+      availableRewards,
+      lastCompleted: data.last_updated
     };
   } catch (error) {
     console.error('Error getting learning progress:', error);
-    // Return fallback data for demo purposes
+    // Return fallback data
     return {
       completedLessons: 0, 
       totalLessons: 15,
@@ -42,16 +80,52 @@ export const getEduScore = async () => {
       throw new Error('User not authenticated');
     }
     
-    // In a real app, this would calculate based on savings behavior, learning progress, etc.
-    // For demo, we'll return static data
+    // Get the user's EduScore from the database
+    const { data, error } = await supabase
+      .from('edu_scores')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Error fetching EduScore:', error);
+      throw error;
+    }
+    
+    // If no EduScore exists, create one
+    if (!data) {
+      const { data: newScore, error: createError } = await supabase
+        .from('edu_scores')
+        .insert({
+          user_id: user.id,
+          score: 0,
+          completed_lessons: [],
+        })
+        .select()
+        .single();
+      
+      if (createError) {
+        console.error('Error creating EduScore:', createError);
+        throw createError;
+      }
+      
+      return {
+        score: 0,
+        change: 0,
+        lastUpdated: newScore.last_updated
+      };
+    }
+    
+    // Calculate change in the last week (in a real app, this would be more sophisticated)
+    const change = 0; // Simplified for demo
+    
     return {
-      score: 0,
-      change: 0,
-      lastUpdated: new Date().toISOString()
+      score: data.score,
+      change,
+      lastUpdated: data.last_updated
     };
   } catch (error) {
     console.error('Error getting EduScore:', error);
-    // Instead of rethrowing, return fallback data for demo purposes
     return {
       score: 0,
       change: 0,
@@ -70,13 +144,66 @@ export const completeLesson = async (lessonId: string) => {
       throw new Error('User not authenticated');
     }
     
-    // In a real app, this would update the learning_progress table
-    // For demo, we'll just return success
+    // Get the current EduScore
+    const { data, error } = await supabase
+      .from('edu_scores')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
     
-    // Simulate updating EduScore
+    if (error) {
+      console.error('Error fetching EduScore:', error);
+      throw error;
+    }
+    
+    // Calculate the points to award
+    const pointsEarned = 10;
+    
+    // If no EduScore exists, create one
+    if (!data) {
+      const { error: createError } = await supabase
+        .from('edu_scores')
+        .insert({
+          user_id: user.id,
+          score: pointsEarned,
+          completed_lessons: [lessonId],
+        });
+      
+      if (createError) {
+        console.error('Error creating EduScore:', createError);
+        throw createError;
+      }
+    } else {
+      // Check if the lesson is already completed
+      if (data.completed_lessons.includes(lessonId)) {
+        return {
+          success: true,
+          scoreEarned: 0,
+        };
+      }
+      
+      // Update the existing EduScore
+      const newCompletedLessons = [...data.completed_lessons, lessonId];
+      const newScore = data.score + pointsEarned;
+      
+      const { error: updateError } = await supabase
+        .from('edu_scores')
+        .update({
+          score: newScore,
+          completed_lessons: newCompletedLessons,
+          last_updated: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+      
+      if (updateError) {
+        console.error('Error updating EduScore:', updateError);
+        throw updateError;
+      }
+    }
+    
     return {
       success: true,
-      scoreEarned: 10,
+      scoreEarned: pointsEarned,
     };
   } catch (error) {
     console.error('Error completing lesson:', error);

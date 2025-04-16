@@ -1,40 +1,11 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, ArrowUp, ArrowDown } from "lucide-react";
-import { getEduScore } from '@/lib/education';
-import { toast } from 'sonner';
+import { useEduScore } from '@/hooks/useEduScore';
 
 const EduScoreCard = () => {
-  const [score, setScore] = useState({
-    score: 0,
-    change: 0,
-    lastUpdated: '',
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    const fetchScore = async () => {
-      try {
-        setLoading(true);
-        setError(false);
-        const data = await getEduScore();
-        setScore(data);
-      } catch (error) {
-        console.error('Error fetching EduScore:', error);
-        setError(true);
-        // Show a toast message about the error
-        toast.error("Could not load EduScore data", {
-          description: "Please check your Supabase connection"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchScore();
-  }, []);
+  const { score, loading, error } = useEduScore();
 
   if (loading) {
     return (
@@ -72,6 +43,12 @@ const EduScoreCard = () => {
     );
   }
 
+  // Get the current score safely
+  const currentScore = score?.score || 0;
+  
+  // In a real app, this would come from the database
+  const change = 0;
+
   return (
     <Card className="bg-gradient-to-br from-purple-50 to-white">
       <CardHeader className="pb-2">
@@ -81,18 +58,18 @@ const EduScoreCard = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-3xl font-bold">{score.score}</div>
-        {score.change !== 0 && (
-          <div className={`text-sm mt-1 flex items-center ${score.change > 0 ? 'text-green-600' : 'text-red-500'}`}>
-            {score.change > 0 ? (
+        <div className="text-3xl font-bold">{currentScore}</div>
+        {change !== 0 && (
+          <div className={`text-sm mt-1 flex items-center ${change > 0 ? 'text-green-600' : 'text-red-500'}`}>
+            {change > 0 ? (
               <>
                 <ArrowUp className="h-4 w-4 mr-1" />
-                +{score.change} points this week
+                +{change} points this week
               </>
             ) : (
               <>
                 <ArrowDown className="h-4 w-4 mr-1" />
-                {score.change} points this week
+                {change} points this week
               </>
             )}
           </div>
