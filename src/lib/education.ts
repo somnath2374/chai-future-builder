@@ -50,10 +50,11 @@ export const getLearningProgress = async () => {
     }
     
     // Calculate available rewards based on completed lessons
-    const availableRewards = Math.floor(data.completed_lessons.length / 2);
+    const completedLessonsCount = data.completed_lessons?.length || 0;
+    const availableRewards = Math.floor(completedLessonsCount / 2);
     
     return {
-      completedLessons: data.completed_lessons.length,
+      completedLessons: completedLessonsCount,
       totalLessons: 15,
       availableRewards,
       lastCompleted: data.last_updated
@@ -175,7 +176,8 @@ export const completeLesson = async (lessonId: string) => {
       }
     } else {
       // Check if the lesson is already completed
-      if (data.completed_lessons.includes(lessonId)) {
+      const completedLessons = data.completed_lessons || [];
+      if (completedLessons.includes(lessonId)) {
         return {
           success: true,
           scoreEarned: 0,
@@ -183,7 +185,7 @@ export const completeLesson = async (lessonId: string) => {
       }
       
       // Update the existing EduScore
-      const newCompletedLessons = [...data.completed_lessons, lessonId];
+      const newCompletedLessons = [...completedLessons, lessonId];
       const newScore = data.score + pointsEarned;
       
       const { error: updateError } = await supabase

@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
 
 interface AddTransactionFormProps {
   onAddRoundUp: (amount: number, description: string) => Promise<any>;
@@ -23,6 +24,8 @@ const formSchema = z.object({
 
 const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddRoundUp }) => {
   const [loading, setLoading] = useState(false);
+  const [lastTransaction, setLastTransaction] = useState<{ amount: number; description: string } | null>(null);
+  const { toast } = useToast();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -35,7 +38,23 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddRoundUp })
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
-      await onAddRoundUp(parseFloat(data.amount), data.description || "Manual round-up");
+      const amount = parseFloat(data.amount);
+      const description = data.description || "Manual round-up";
+      
+      await onAddRoundUp(amount, description);
+      
+      // Store the transaction details to display the message
+      setLastTransaction({
+        amount: amount,
+        description: description
+      });
+      
+      // Show toast to inform the user
+      toast({
+        title: "Round-up saved!",
+        description: `₹${amount.toFixed(2)} was paid to the vendor, and 5-10 rupees were added to your wallet.`,
+      });
+      
       form.reset();
     } catch (error) {
       console.error('Error adding round-up:', error);
@@ -106,6 +125,14 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddRoundUp })
             >
               {loading ? 'Processing...' : 'Save Round-Up'}
             </Button>
+            
+            {lastTransaction && (
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-800">
+                <p className="font-medium">Transaction simulated:</p>
+                <p>₹{lastTransaction.amount.toFixed(2)} was paid to the vendor for {lastTransaction.description}</p>
+                <p>A portion was saved in your wallet as round-up.</p>
+              </div>
+            )}
           </form>
         </Form>
       </CardContent>
