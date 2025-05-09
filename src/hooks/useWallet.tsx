@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { fetchWallet, simulateRoundUp, addDeposit } from '@/lib/wallet';
 import { Wallet, Transaction } from '@/types/wallet';
@@ -11,6 +10,7 @@ export const useWallet = () => {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -139,6 +139,57 @@ export const useWallet = () => {
     }
   };
 
+  // Initiate UPI payment via PhonePe
+  const initiateUpiPayment = async (amount: number, description: string) => {
+    try {
+      setPaymentLoading(true);
+      
+      const user = await getCurrentUser();
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to continue.",
+          variant: "destructive",
+        });
+        navigate('/login');
+        return;
+      }
+
+      // Create the payment request via the edge function
+      const { data, error } = await supabase.functions.invoke('phonepe-payment', {
+        body: {
+          amount: amount,
+          description: description || "Wallet deposit",
+          userId: user.id,
+          redirectUrl: window.location.origin + '/payment-success',
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!data.success || !data.paymentUrl) {
+        throw new Error("Failed to create payment request");
+      }
+
+      // Redirect to payment URL
+      window.location.href = data.paymentUrl;
+      
+      return data;
+    } catch (err: any) {
+      console.error('Payment error:', err);
+      toast({
+        title: "Payment initiation failed",
+        description: err?.message || "Could not initiate payment. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Check if Supabase is configured before trying to fetch wallet
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -174,9 +225,11 @@ export const useWallet = () => {
   return {
     wallet,
     loading,
+    paymentLoading,
     error,
     refreshWallet: getWallet,
     addRoundUp,
-    addDirectDeposit
+    addDirectDeposit,
+    initiateUpiPayment
   };
 };

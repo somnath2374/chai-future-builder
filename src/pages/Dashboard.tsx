@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Dashboard = () => {
-  const { wallet, loading, addRoundUp, addDirectDeposit, refreshWallet } = useWallet();
+  const { wallet, loading, paymentLoading, addRoundUp, addDirectDeposit, initiateUpiPayment, refreshWallet } = useWallet();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [userName, setUserName] = useState<string | null>(null);
@@ -56,6 +55,36 @@ const Dashboard = () => {
       console.error('Sign out error:', error);
     }
   };
+
+  // Check if the URL contains payment success or failure parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('status');
+    const txnId = urlParams.get('txnId');
+    
+    if (status && txnId) {
+      // Clear URL parameters without reloading the page
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Handle payment status
+      if (status === 'SUCCESS') {
+        toast({
+          title: "Payment successful!",
+          description: `Your payment has been successfully processed. Transaction ID: ${txnId}`,
+          variant: "default",
+        });
+        
+        // Refresh wallet data to show updated balance
+        refreshWallet();
+      } else {
+        toast({
+          title: "Payment failed",
+          description: `Your payment was not successful. Please try again.`,
+          variant: "destructive",
+        });
+      }
+    }
+  }, []);
 
   if (isLoading) {
     return (
@@ -139,7 +168,11 @@ const Dashboard = () => {
                 <AddTransactionForm onAddRoundUp={addRoundUp} />
               </TabsContent>
               <TabsContent value="deposit">
-                <DepositForm onAddDeposit={addDirectDeposit} />
+                <DepositForm 
+                  onAddDeposit={addDirectDeposit}
+                  onInitiatePayment={initiateUpiPayment}
+                  paymentLoading={paymentLoading}
+                />
               </TabsContent>
             </Tabs>
             <FinancialTips />
