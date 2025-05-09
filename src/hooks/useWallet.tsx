@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { fetchWallet, simulateRoundUp, addDeposit } from '@/lib/wallet';
 import { Wallet, Transaction } from '@/types/wallet';
@@ -70,7 +71,7 @@ export const useWallet = () => {
         
         toast({
           title: "Round-up saved!",
-          description: `₹${transaction.amount.toFixed(2)} added to your wallet.`,
+          description: `₹${transaction.amount.toFixed(2)} added to your wallet. Original amount of ₹${amount.toFixed(2)} sent to vendor.`,
         });
         
         return transaction;
