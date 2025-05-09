@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { fetchWallet, simulateRoundUp, addDeposit } from '@/lib/wallet';
 import { Wallet, Transaction } from '@/types/wallet';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 
 export const useWallet = () => {
   const [wallet, setWallet] = useState<Wallet | null>(null);
@@ -153,8 +153,21 @@ export const useWallet = () => {
       });
       return;
     }
+
+    // Set up an authentication change listener to detect login/logout events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') {
+        getWallet(); // Fetch wallet when user signs in
+      } else if (event === 'SIGNED_OUT') {
+        setWallet(null); // Clear wallet when user signs out
+      }
+    });
     
     getWallet();
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   return {
