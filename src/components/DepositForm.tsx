@@ -13,7 +13,7 @@ import { CreditCard, Smartphone } from "lucide-react";
 
 interface DepositFormProps {
   onAddDeposit: (amount: number, description: string) => Promise<any>;
-  onInitiatePayment?: (amount: number, description: string) => Promise<any>;
+  onInitiatePayment?: (amount: number, description: string, upiId: string) => Promise<any>;
   paymentLoading?: boolean;
 }
 

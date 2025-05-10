@@ -48,7 +48,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get request data
-    const { amount, description, userId, callbackUrl, redirectUrl } = await req.json();
+    const { amount, description, userId, upiId, callbackUrl, redirectUrl } = await req.json();
     
     if (!amount || amount <= 0) {
       throw new Error("Invalid amount");
@@ -58,12 +58,16 @@ serve(async (req) => {
       throw new Error("User ID is required");
     }
 
-    logStep("Creating payment request", { amount, userId });
+    if (!upiId) {
+      throw new Error("UPI ID is required");
+    }
+
+    logStep("Creating payment request", { amount, upiId, userId });
 
     // Generate a transaction ID
     const transactionId = crypto.randomUUID();
     
-    // Create payload for PhonePe
+    // Create payload for PhonePe direct UPI payment
     const payload = {
       merchantId: PHONEPE_MERCHANT_ID,
       merchantTransactionId: transactionId,
@@ -72,9 +76,10 @@ serve(async (req) => {
       redirectUrl: redirectUrl || `${req.headers.get("origin") || ""}/payment-success`,
       redirectMode: "REDIRECT",
       callbackUrl: callbackUrl || `${supabaseUrl}/functions/v1/phonepe-callback`,
-      mobileNumber: "", // This can be provided by user if needed
       paymentInstrument: {
-        type: "PAY_PAGE"
+        type: "UPI_INTENT",
+        targetApp: "PHONEPE",
+        vpa: upiId  // Using the user's provided UPI ID
       }
     };
 
@@ -100,7 +105,7 @@ serve(async (req) => {
       amount: amount,
       description: description || "Wallet deposit",
       status: "INITIATED",
-      payment_method: "PHONEPE",
+      payment_method: "PHONEPE_UPI",
       created_at: new Date().toISOString()
     });
 

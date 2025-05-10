@@ -7,11 +7,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IndianRupee, Smartphone } from "lucide-react";
 
 interface UpiPaymentFormProps {
-  onInitiatePayment: (amount: number, description: string) => Promise<any>;
+  onInitiatePayment: (amount: number, description: string, upiId: string) => Promise<any>;
   loading: boolean;
 }
 
@@ -21,6 +20,9 @@ const formSchema = z.object({
     { message: "Amount must be greater than 0" }
   ),
   description: z.string().optional(),
+  upiId: z.string()
+    .min(5, "Valid UPI ID required")
+    .regex(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+$/, "UPI ID must be in format username@bankname")
 });
 
 const UpiPaymentForm: React.FC<UpiPaymentFormProps> = ({ onInitiatePayment, loading }) => {
@@ -29,12 +31,17 @@ const UpiPaymentForm: React.FC<UpiPaymentFormProps> = ({ onInitiatePayment, load
     defaultValues: {
       amount: "",
       description: "",
+      upiId: ""
     },
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
-      await onInitiatePayment(parseFloat(data.amount), data.description || "UPI deposit");
+      await onInitiatePayment(
+        parseFloat(data.amount), 
+        data.description || "UPI deposit", 
+        data.upiId
+      );
     } catch (error) {
       console.error('Error initiating payment:', error);
     }
@@ -48,7 +55,7 @@ const UpiPaymentForm: React.FC<UpiPaymentFormProps> = ({ onInitiatePayment, load
           Add Real Money via UPI
         </CardTitle>
         <CardDescription>
-          Securely add funds using PhonePe or any UPI app
+          Enter your PhonePe UPI ID to receive payment request directly
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -78,6 +85,26 @@ const UpiPaymentForm: React.FC<UpiPaymentFormProps> = ({ onInitiatePayment, load
             
             <FormField
               control={form.control}
+              name="upiId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Your PhonePe UPI ID</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="username@ybl"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                  <p className="text-xs text-muted-foreground">
+                    Example: yourname@ybl, yourname@paytm, etc.
+                  </p>
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
@@ -98,7 +125,7 @@ const UpiPaymentForm: React.FC<UpiPaymentFormProps> = ({ onInitiatePayment, load
               className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90"
               disabled={loading}
             >
-              {loading ? 'Processing...' : 'Pay with UPI'}
+              {loading ? 'Processing...' : 'Request Payment via PhonePe'}
             </Button>
             
             <div className="text-xs text-center text-gray-500 mt-2">
