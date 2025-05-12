@@ -26,9 +26,15 @@ jobs:
 
     - name: Build
       run: npm run build
+      env:
+        CI: true
+        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://example.com' }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'example-key' }}
 
     - name: Run tests
-      run: npm test || echo "No tests specified"
+      run: npm test
+      env:
+        CI: true
 
   deploy:
     needs: build
@@ -50,6 +56,10 @@ jobs:
       
     - name: Build
       run: npm run build
+      env:
+        CI: true
+        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://example.com' }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'example-key' }}
       
     - name: Deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@v4
