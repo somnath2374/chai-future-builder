@@ -81,7 +81,7 @@ serve(async (req) => {
       }
 
       // Update transaction status
-      await supabase
+      const { error: updateTxError } = await supabase
         .from('payment_transactions')
         .update({
           status: 'SUCCESS',
@@ -90,26 +90,52 @@ serve(async (req) => {
         })
         .eq('id', transaction.id);
 
+      if (updateTxError) {
+        logStep("Error updating transaction", updateTxError);
+        throw updateTxError;
+      }
+
       // Update wallet if payment is successful
       if (status === 'captured') {
         logStep("Payment successful, updating wallet");
         
-        // Get wallet
-        const { data: wallet, error: walletError } = await supabase
+        // Get or create wallet
+        let { data: wallet, error: walletError } = await supabase
           .from('wallets')
           .select('*')
           .eq('user_id', transaction.user_id)
           .single();
         
-        if (walletError || !wallet) {
-          throw new Error(`Wallet not found for user: ${transaction.user_id}`);
+        if (walletError && walletError.code === 'PGRST116') {
+          // Wallet doesn't exist, create one
+          const { data: newWallet, error: createError } = await supabase
+            .from('wallets')
+            .insert({
+              user_id: transaction.user_id,
+              balance: 0,
+              roundup_total: 0,
+              rewards_earned: 0,
+              last_transaction_date: new Date().toISOString()
+            })
+            .select()
+            .single();
+          
+          if (createError) {
+            logStep("Error creating wallet", createError);
+            throw createError;
+          }
+          
+          wallet = newWallet;
+        } else if (walletError) {
+          logStep("Error fetching wallet", walletError);
+          throw walletError;
         }
         
         // Calculate new balance
         const newBalance = (wallet.balance || 0) + amount;
         
         // Update wallet balance
-        await supabase
+        const { error: updateWalletError } = await supabase
           .from('wallets')
           .update({
             balance: newBalance,
@@ -117,8 +143,13 @@ serve(async (req) => {
           })
           .eq('id', wallet.id);
         
+        if (updateWalletError) {
+          logStep("Error updating wallet", updateWalletError);
+          throw updateWalletError;
+        }
+        
         // Add transaction record
-        await supabase
+        const { error: addTransactionError } = await supabase
           .from('transactions')
           .insert({
             wallet_id: wallet.id,
@@ -127,6 +158,13 @@ serve(async (req) => {
             description: transaction.description || "Razorpay deposit",
             created_at: new Date().toISOString()
           });
+        
+        if (addTransactionError) {
+          logStep("Error adding transaction", addTransactionError);
+          throw addTransactionError;
+        }
+        
+        logStep("Wallet updated successfully", { newBalance, transactionAmount: amount });
       }
     }
 

@@ -14,9 +14,10 @@ import { signOut, getCurrentUser } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import RazorpayRoundUpForm from '@/components/RazorpayRoundUpForm';
 
 const Dashboard = () => {
-  const { wallet, loading, paymentLoading, addRoundUp, addDirectDeposit, initiateUpiPayment, refreshWallet } = useWallet();
+  const { wallet, loading, paymentLoading, addRoundUp, addDirectDeposit, initiateRazorpayPayment, refreshWallet } = useWallet();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [userName, setUserName] = useState<string | null>(null);
@@ -165,12 +166,14 @@ const Dashboard = () => {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="roundup">
-                <AddTransactionForm onAddRoundUp={addRoundUp} />
+                <RazorpayRoundUpForm 
+                  onInitiatePayment={initiateRazorpayPayment}
+                  loading={paymentLoading}
+                />
               </TabsContent>
               <TabsContent value="deposit">
                 <DepositForm 
-                  onAddDeposit={addDirectDeposit}
-                  onInitiatePayment={initiateUpiPayment}
+                  onInitiatePayment={initiateRazorpayPayment}
                   paymentLoading={paymentLoading}
                 />
               </TabsContent>

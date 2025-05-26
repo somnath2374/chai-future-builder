@@ -7,6 +7,13 @@ import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
+// Extend Window interface to include Razorpay
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 // Load Razorpay script
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -204,13 +211,16 @@ export const useWallet = () => {
         description: description || "Wallet deposit",
         order_id: data.orderId,
         handler: async (response: any) => {
+          console.log('Payment successful:', response);
           toast({
             title: "Payment successful!",
             description: `₹${amount} has been added to your wallet.`,
           });
           
-          // Refresh wallet to show updated balance
-          await getWallet();
+          // Wait a moment for the webhook to process, then refresh wallet
+          setTimeout(async () => {
+            await getWallet();
+          }, 2000);
         },
         modal: {
           ondismiss: () => {
@@ -223,7 +233,7 @@ export const useWallet = () => {
       };
 
       // Open Razorpay checkout
-      const razorpay = new (window as any).Razorpay(options);
+      const razorpay = new window.Razorpay(options);
       razorpay.open();
       
       return data;
@@ -280,6 +290,6 @@ export const useWallet = () => {
     refreshWallet: getWallet,
     addRoundUp,
     addDirectDeposit,
-    initiateUpiPayment: initiateRazorpayPayment
+    initiateRazorpayPayment: initiateRazorpayPayment
   };
 };
