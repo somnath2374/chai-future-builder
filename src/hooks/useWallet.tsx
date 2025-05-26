@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { fetchWallet, simulateRoundUp, addDeposit } from '@/lib/wallet';
 import { Wallet, Transaction } from '@/types/wallet';
@@ -5,6 +6,22 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+
+// Load Razorpay script
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 export const useWallet = () => {
   const [wallet, setWallet] = useState<Wallet | null>(null);
@@ -139,8 +156,8 @@ export const useWallet = () => {
     }
   };
 
-  // Initiate UPI payment via PhonePe
-  const initiateUpiPayment = async (amount: number, description: string) => {
+  // Initiate Razorpay payment
+  const initiateRazorpayPayment = async (amount: number, description: string) => {
     try {
       setPaymentLoading(true);
       
@@ -155,13 +172,18 @@ export const useWallet = () => {
         return;
       }
 
-      // Create the payment request via the edge function
-      const { data, error } = await supabase.functions.invoke('phonepe-payment', {
+      // Load Razorpay script
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        throw new Error("Failed to load Razorpay SDK");
+      }
+
+      // Create the payment order via the edge function
+      const { data, error } = await supabase.functions.invoke('razorpay-payment', {
         body: {
           amount: amount,
           description: description || "Wallet deposit",
           userId: user.id,
-          redirectUrl: window.location.origin + '/payment-success',
         },
       });
 
@@ -169,12 +191,40 @@ export const useWallet = () => {
         throw new Error(error.message);
       }
 
-      if (!data.success || !data.paymentUrl) {
-        throw new Error("Failed to create payment request");
+      if (!data.success) {
+        throw new Error("Failed to create payment order");
       }
 
-      // Redirect to payment URL
-      window.location.href = data.paymentUrl;
+      // Configure Razorpay options
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency,
+        name: "EduChain",
+        description: description || "Wallet deposit",
+        order_id: data.orderId,
+        handler: async (response: any) => {
+          toast({
+            title: "Payment successful!",
+            description: `₹${amount} has been added to your wallet.`,
+          });
+          
+          // Refresh wallet to show updated balance
+          await getWallet();
+        },
+        modal: {
+          ondismiss: () => {
+            setPaymentLoading(false);
+          }
+        },
+        theme: {
+          color: "#8B5CF6"
+        }
+      };
+
+      // Open Razorpay checkout
+      const razorpay = new (window as any).Razorpay(options);
+      razorpay.open();
       
       return data;
     } catch (err: any) {
@@ -230,6 +280,6 @@ export const useWallet = () => {
     refreshWallet: getWallet,
     addRoundUp,
     addDirectDeposit,
-    initiateUpiPayment
+    initiateUpiPayment: initiateRazorpayPayment
   };
 };

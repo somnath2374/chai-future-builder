@@ -8,12 +8,12 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import UpiPaymentForm from "@/components/UpiPaymentForm";
+import RazorpayPaymentForm from "@/components/RazorpayPaymentForm";
 import { CreditCard, Smartphone } from "lucide-react";
 
 interface DepositFormProps {
   onAddDeposit: (amount: number, description: string) => Promise<any>;
-  onInitiatePayment?: (amount: number, description: string, upiId: string) => Promise<any>;
+  onInitiatePayment?: (amount: number, description: string) => Promise<any>;
   paymentLoading?: boolean;
 }
 
@@ -65,12 +65,12 @@ const DepositForm: React.FC<DepositFormProps> = ({
               <span>Simulate</span>
             </TabsTrigger>
             <TabsTrigger 
-              value="upi" 
+              value="razorpay" 
               className="flex-1 flex items-center justify-center gap-2"
               disabled={!onInitiatePayment}
             >
               <Smartphone className="h-4 w-4" />
-              <span>UPI (Real)</span>
+              <span>Razorpay (Real)</span>
             </TabsTrigger>
           </TabsList>
           
@@ -126,15 +126,15 @@ const DepositForm: React.FC<DepositFormProps> = ({
             </Form>
           </TabsContent>
           
-          <TabsContent value="upi">
+          <TabsContent value="razorpay">
             {onInitiatePayment ? (
-              <UpiPaymentForm 
+              <RazorpayPaymentForm 
                 onInitiatePayment={onInitiatePayment} 
                 loading={paymentLoading} 
               />
             ) : (
               <div className="py-8 text-center">
-                <p className="text-muted-foreground">UPI payments are not configured.</p>
+                <p className="text-muted-foreground">Razorpay payments are not configured.</p>
               </div>
             )}
           </TabsContent>
