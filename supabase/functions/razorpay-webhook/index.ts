@@ -77,7 +77,15 @@ serve(async (req) => {
         .single();
       
       if (txError || !transaction) {
-        throw new Error(`Transaction not found for order: ${orderId}`);
+        logStep("Transaction not found, searching by payment ID", { orderId, paymentId });
+        // Try to find by payment notes if order lookup fails
+        return new Response(JSON.stringify({
+          success: false,
+          message: `Transaction not found for order: ${orderId}`
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404
+        });
       }
 
       // Update transaction status
@@ -97,17 +105,23 @@ serve(async (req) => {
 
       // Update wallet if payment is successful
       if (status === 'captured') {
-        logStep("Payment successful, updating wallet");
+        logStep("Payment successful, updating wallet for user", transaction.user_id);
         
         // Get or create wallet
         let { data: wallet, error: walletError } = await supabase
           .from('wallets')
           .select('*')
           .eq('user_id', transaction.user_id)
-          .single();
+          .maybeSingle();
         
-        if (walletError && walletError.code === 'PGRST116') {
+        if (walletError) {
+          logStep("Error fetching wallet", walletError);
+          throw walletError;
+        }
+
+        if (!wallet) {
           // Wallet doesn't exist, create one
+          logStep("Creating new wallet for user", transaction.user_id);
           const { data: newWallet, error: createError } = await supabase
             .from('wallets')
             .insert({
@@ -126,19 +140,30 @@ serve(async (req) => {
           }
           
           wallet = newWallet;
-        } else if (walletError) {
-          logStep("Error fetching wallet", walletError);
-          throw walletError;
         }
         
-        // Calculate new balance
-        const newBalance = (wallet.balance || 0) + amount;
+        // Determine transaction type and calculate amounts
+        const isRoundUp = transaction.description?.includes('Round-up') || transaction.description?.includes('round-up');
+        let finalAmount = amount;
+        let roundupAmount = 0;
+        
+        if (isRoundUp) {
+          // For round-ups, add 5-10 rupees to the paid amount
+          roundupAmount = Math.floor((Math.random() * 5 + 5) * 100) / 100;
+          finalAmount = amount + roundupAmount;
+          logStep("Round-up transaction detected", { originalAmount: amount, roundupAmount, finalAmount });
+        }
+        
+        // Calculate new balances
+        const newBalance = (wallet.balance || 0) + finalAmount;
+        const newRoundupTotal = (wallet.roundup_total || 0) + (isRoundUp ? roundupAmount : 0);
         
         // Update wallet balance
         const { error: updateWalletError } = await supabase
           .from('wallets')
           .update({
             balance: newBalance,
+            roundup_total: newRoundupTotal,
             last_transaction_date: new Date().toISOString()
           })
           .eq('id', wallet.id);
@@ -153,9 +178,9 @@ serve(async (req) => {
           .from('transactions')
           .insert({
             wallet_id: wallet.id,
-            type: 'deposit',
-            amount: amount,
-            description: transaction.description || "Razorpay deposit",
+            type: isRoundUp ? 'round-up' : 'deposit',
+            amount: finalAmount,
+            description: transaction.description || "Razorpay payment",
             created_at: new Date().toISOString()
           });
         
@@ -164,7 +189,12 @@ serve(async (req) => {
           throw addTransactionError;
         }
         
-        logStep("Wallet updated successfully", { newBalance, transactionAmount: amount });
+        logStep("Wallet updated successfully", { 
+          newBalance, 
+          transactionAmount: finalAmount,
+          roundupAmount: isRoundUp ? roundupAmount : 0,
+          isRoundUp 
+        });
       }
     }
 

@@ -214,13 +214,13 @@ export const useWallet = () => {
           console.log('Payment successful:', response);
           toast({
             title: "Payment successful!",
-            description: `₹${amount} has been added to your wallet.`,
+            description: `₹${amount} payment processed successfully.`,
           });
           
           // Wait a moment for the webhook to process, then refresh wallet
           setTimeout(async () => {
             await getWallet();
-          }, 2000);
+          }, 3000); // Wait 3 seconds for webhook processing
         },
         modal: {
           ondismiss: () => {

@@ -34,9 +34,27 @@ const RazorpayRoundUpForm: React.FC<RazorpayRoundUpFormProps> = ({
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    await onInitiatePayment(parseFloat(data.amount), data.description || "Round-up payment");
+  // Calculate round-up amount (5-10 rupees)
+  const calculateRoundUp = () => {
+    return Math.floor((Math.random() * 5 + 5) * 100) / 100;
   };
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    const originalAmount = parseFloat(data.amount);
+    const roundUpAmount = calculateRoundUp();
+    const totalAmount = originalAmount + roundUpAmount;
+    
+    console.log(`Round-up payment: Original ₹${originalAmount}, Round-up ₹${roundUpAmount}, Total ₹${totalAmount}`);
+    
+    // For round-up, we pay the original amount but save extra to wallet
+    await onInitiatePayment(
+      originalAmount, 
+      `Round-up payment: ${data.description || 'Purchase'} (Original: ₹${originalAmount}, Round-up: ₹${roundUpAmount})`
+    );
+  };
+
+  const currentAmount = form.watch("amount");
+  const displayRoundUp = currentAmount ? calculateRoundUp() : 0;
 
   return (
     <Card>
@@ -46,7 +64,7 @@ const RazorpayRoundUpForm: React.FC<RazorpayRoundUpFormProps> = ({
           Round-Up Payment
         </CardTitle>
         <CardDescription>
-          Pay for your purchase and save change automatically
+          Pay for your purchase and save extra change automatically
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -71,9 +89,22 @@ const RazorpayRoundUpForm: React.FC<RazorpayRoundUpFormProps> = ({
               )}
             />
             
-            <div className="px-3 py-2 bg-educhain-lightPurple rounded-md text-sm">
-              <span className="font-medium">Note: </span>
-              <span className="text-educhain-darkPurple">You'll pay the exact amount, and change will be automatically saved to your wallet</span>
+            <div className="px-3 py-2 bg-educhain-lightPurple rounded-md text-sm space-y-1">
+              <div className="flex justify-between">
+                <span className="text-educhain-darkPurple">Purchase amount:</span>
+                <span className="font-medium">₹{currentAmount || '0.00'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-educhain-darkPurple">Round-up savings:</span>
+                <span className="font-medium text-green-600">+₹{displayRoundUp.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between border-t pt-1">
+                <span className="font-medium text-educhain-darkPurple">You pay:</span>
+                <span className="font-bold">₹{currentAmount || '0.00'}</span>
+              </div>
+              <div className="text-xs text-educhain-darkPurple">
+                ₹{displayRoundUp.toFixed(2)} will be automatically saved to your wallet
+              </div>
             </div>
             
             <FormField
@@ -99,7 +130,7 @@ const RazorpayRoundUpForm: React.FC<RazorpayRoundUpFormProps> = ({
               disabled={loading}
             >
               <CreditCard className="h-4 w-4" />
-              {loading ? 'Processing...' : 'Pay with Razorpay'}
+              {loading ? 'Processing...' : 'Pay with Round-Up'}
             </Button>
             <p className="text-xs text-center text-muted-foreground mt-1">
               Secure payment powered by Razorpay

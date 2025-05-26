@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import RazorpayRoundUpForm from '@/components/RazorpayRoundUpForm';
 
 const Dashboard = () => {
-  const { wallet, loading, paymentLoading, addRoundUp, addDirectDeposit, initiateRazorpayPayment, refreshWallet } = useWallet();
+  const { wallet, loading, paymentLoading, initiateRazorpayPayment, refreshWallet } = useWallet();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [userName, setUserName] = useState<string | null>(null);
@@ -76,7 +76,9 @@ const Dashboard = () => {
         });
         
         // Refresh wallet data to show updated balance
-        refreshWallet();
+        setTimeout(() => {
+          refreshWallet();
+        }, 2000);
       } else {
         toast({
           title: "Payment failed",
@@ -85,7 +87,7 @@ const Dashboard = () => {
         });
       }
     }
-  }, []);
+  }, [refreshWallet, toast]);
 
   if (isLoading) {
     return (
