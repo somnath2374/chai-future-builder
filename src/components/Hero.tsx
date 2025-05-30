@@ -65,7 +65,7 @@ const Hero = () => {
           <div className="relative">
             <div className="relative w-full h-[400px] md:h-[480px] animate-float">
               {/* Transaction Card - Top Right */}
-              <div className="absolute top-0 right-0 lg:top-8 lg:right-12 xl:top-12 xl:right-16 glass-card rounded-xl p-4 shadow-lg animate-pulse-gentle max-w-[220px]">
+              <div className="absolute top-0 right-0 lg:top-4 lg:right-4 xl:top-6 xl:right-6 glass-card rounded-xl p-4 shadow-lg animate-pulse-gentle max-w-[220px]">
                 <div className="flex flex-col">
                   <span className="text-xs text-gray-500">Transaction</span>
                   <div className="flex items-center gap-2 mt-1">
@@ -86,7 +86,7 @@ const Hero = () => {
               </div>
               
               {/* EduScore Card - Bottom Left */}
-              <div className="absolute bottom-4 left-0 lg:bottom-12 lg:left-8 xl:bottom-16 xl:left-12 glass-card rounded-xl p-4 shadow-lg max-w-[200px] animate-pulse-gentle" style={{ animationDelay: '1s' }}>
+              <div className="absolute bottom-4 left-0 lg:bottom-8 lg:left-4 xl:bottom-10 xl:left-6 glass-card rounded-xl p-4 shadow-lg max-w-[200px] animate-pulse-gentle" style={{ animationDelay: '1s' }}>
                 <div className="flex flex-col">
                   <span className="text-xs text-gray-500">EduScore Update</span>
                   <div className="mt-1">
@@ -104,7 +104,7 @@ const Hero = () => {
               </div>
               
               {/* Investment Growth Card - Center */}
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 lg:top-1/2 lg:left-1/3 lg:transform lg:-translate-y-1/2 lg:translate-x-0 xl:left-1/4 glass-card rounded-xl p-4 shadow-lg max-w-[220px] animate-pulse-gentle" style={{ animationDelay: '0.5s' }}>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 lg:top-1/2 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:-translate-y-1/2 xl:left-1/2 glass-card rounded-xl p-4 shadow-lg max-w-[220px] animate-pulse-gentle" style={{ animationDelay: '0.5s' }}>
                 <div className="flex flex-col">
                   <span className="text-xs text-gray-500">Investment Growth</span>
                   <div className="mt-1">
