@@ -39,7 +39,9 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          status: string
           type: string
+          user_id: string | null
           wallet_id: string
         }
         Insert: {
@@ -47,7 +49,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          status?: string
           type: string
+          user_id?: string | null
           wallet_id: string
         }
         Update: {
@@ -55,7 +59,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          status?: string
           type?: string
+          user_id?: string | null
           wallet_id?: string
         }
         Relationships: [

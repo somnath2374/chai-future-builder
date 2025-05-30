@@ -77,8 +77,7 @@ serve(async (req) => {
         .single();
       
       if (txError || !transaction) {
-        logStep("Transaction not found, searching by payment ID", { orderId, paymentId });
-        // Try to find by payment notes if order lookup fails
+        logStep("Transaction not found", { orderId, paymentId });
         return new Response(JSON.stringify({
           success: false,
           message: `Transaction not found for order: ${orderId}`
@@ -173,13 +172,15 @@ serve(async (req) => {
           throw updateWalletError;
         }
         
-        // Add transaction record
+        // Add transaction record with proper wallet_id and user_id foreign keys
         const { error: addTransactionError } = await supabase
           .from('transactions')
           .insert({
             wallet_id: wallet.id,
+            user_id: transaction.user_id,
             type: isRoundUp ? 'round-up' : 'deposit',
             amount: finalAmount,
+            status: 'success',
             description: transaction.description || "Razorpay payment",
             created_at: new Date().toISOString()
           });
@@ -189,11 +190,12 @@ serve(async (req) => {
           throw addTransactionError;
         }
         
-        logStep("Wallet updated successfully", { 
+        logStep("Wallet and transaction updated successfully", { 
           newBalance, 
           transactionAmount: finalAmount,
           roundupAmount: isRoundUp ? roundupAmount : 0,
-          isRoundUp 
+          isRoundUp,
+          walletId: wallet.id
         });
       }
     }

@@ -3,9 +3,11 @@ export interface Transaction {
   id: string;
   type: 'round-up' | 'deposit' | 'withdrawal' | 'reward';
   amount: number;
+  status: string;
   description: string;
   created_at: string;
-  wallet_id?: string; // Add this to match Supabase schema
+  wallet_id: string; // Required foreign key to wallets table
+  user_id?: string; // Optional foreign key to auth.users table
 }
 
 export interface Wallet {
