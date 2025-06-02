@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Lock, Loader2, CheckCircle } from "lucide-react";
 import { supabase } from '@/lib/supabase';
-import { useToast } = from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
