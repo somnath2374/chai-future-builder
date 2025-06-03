@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { LogOut, PiggyBank, Wallet, ArrowDownCircle, CircleDollarSign, BookOpen } from "lucide-react";
 import { useWallet } from '@/hooks/useWallet';
+import { useAdmin } from '@/hooks/useAdmin';
 import WalletCard from '@/components/WalletCard';
 import TransactionsList from '@/components/TransactionsList';
 import AddTransactionForm from '@/components/AddTransactionForm';
@@ -12,6 +13,7 @@ import DemoRoundUpForm from '@/components/DemoRoundUpForm';
 import LearningProgress from '@/components/LearningProgress';
 import EduScoreCard from '@/components/EduScoreCard';
 import FinancialTips from '@/components/FinancialTips';
+import AdminLogin from '@/components/AdminLogin';
 import { signOut, getCurrentUser } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,6 +23,7 @@ import TransactionManager from '@/components/TransactionManager';
 
 const Dashboard = () => {
   const { wallet, loading, paymentLoading, initiateRazorpayPayment, refreshWallet } = useWallet();
+  const { isAdminAuthenticated } = useAdmin();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [userName, setUserName] = useState<string | null>(null);
@@ -121,6 +124,7 @@ const Dashboard = () => {
               <BookOpen className="h-4 w-4 mr-1" />
               Learn
             </Button>
+            <AdminLogin />
             <div className="hidden md:block">
               <span className="font-medium">Welcome, {userName || 'User'}</span>
             </div>
@@ -187,13 +191,15 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Add Transaction Management Section */}
-        <div className="mb-8">
-          <TransactionManager 
-            transactions={wallet?.transactions || []}
-            onRefresh={refreshWallet}
-          />
-        </div>
+        {/* Admin-only Transaction Management Section */}
+        {isAdminAuthenticated && (
+          <div className="mb-8">
+            <TransactionManager 
+              transactions={wallet?.transactions || []}
+              onRefresh={refreshWallet}
+            />
+          </div>
+        )}
       </main>
     </div>
   );
