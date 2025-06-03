@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -7,6 +8,8 @@ import WalletCard from '@/components/WalletCard';
 import TransactionsList from '@/components/TransactionsList';
 import AddTransactionForm from '@/components/AddTransactionForm';
 import DepositForm from '@/components/DepositForm';
+import DemoDepositForm from '@/components/DemoDepositForm';
+import DemoRoundUpForm from '@/components/DemoRoundUpForm';
 import LearningProgress from '@/components/LearningProgress';
 import EduScoreCard from '@/components/EduScoreCard';
 import FinancialTips from '@/components/FinancialTips';
