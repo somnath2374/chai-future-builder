@@ -12,7 +12,7 @@ export const getLearningProgress = async () => {
       throw new Error('User not authenticated');
     }
     
-    // Get the user's EduScore from the database using raw query
+    // Get the user's EduScore from the database
     const { data, error } = await supabase
       .from('edu_scores')
       .select('*')
@@ -32,7 +32,6 @@ export const getLearningProgress = async () => {
           user_id: user.id,
           score: 0,
           completed_lessons: [],
-          last_updated: new Date().toISOString()
         })
         .select()
         .single();
@@ -102,7 +101,6 @@ export const getEduScore = async () => {
           user_id: user.id,
           score: 0,
           completed_lessons: [],
-          last_updated: new Date().toISOString()
         })
         .select()
         .single();
@@ -170,7 +168,6 @@ export const completeLesson = async (lessonId: string) => {
           user_id: user.id,
           score: pointsEarned,
           completed_lessons: [lessonId],
-          last_updated: new Date().toISOString()
         });
       
       if (createError) {

@@ -9,39 +9,13 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      edu_scores: {
-        Row: {
-          completed_lessons: string[]
-          id: string
-          last_updated: string
-          score: number
-          user_id: string
-        }
-        Insert: {
-          completed_lessons?: string[]
-          id?: string
-          last_updated?: string
-          score?: number
-          user_id: string
-        }
-        Update: {
-          completed_lessons?: string[]
-          id?: string
-          last_updated?: string
-          score?: number
-          user_id?: string
-        }
-        Relationships: []
-      }
       transactions: {
         Row: {
           amount: number
           created_at: string
           description: string | null
           id: string
-          status: string
           type: string
-          user_id: string | null
           wallet_id: string
         }
         Insert: {
@@ -49,9 +23,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          status?: string
           type: string
-          user_id?: string | null
           wallet_id: string
         }
         Update: {
@@ -59,9 +31,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          status?: string
           type?: string
-          user_id?: string | null
           wallet_id?: string
         }
         Relationships: [

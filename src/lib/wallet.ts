@@ -51,7 +51,7 @@ export const fetchWallet = async (): Promise<Wallet | null> => {
       } as Wallet;
     }
     
-    // Now fetch transactions for this wallet using the proper foreign key relationship
+    // Now fetch transactions for this wallet
     const { data: transactions, error: txError } = await supabase
       .from('transactions')
       .select('*')
@@ -95,15 +95,13 @@ export const simulateRoundUp = async (amount: number, description: string): Prom
     const randomRoundupAmount = Math.random() * 5 + 5; // Random amount between 5-10
     const roundupAmount = Math.floor(randomRoundupAmount * 100) / 100; // Round to 2 decimal places
     
-    // Add transaction with proper wallet_id and user_id foreign keys
+    // Add transaction
     const { data, error } = await supabase
       .from('transactions')
       .insert({
         wallet_id: wallet.id,
-        user_id: user.id,
         type: 'round-up',
         amount: roundupAmount,
-        status: 'success',
         description: description || 'Round-up from purchase',
         created_at: new Date().toISOString()
       })
@@ -158,15 +156,13 @@ export const addDeposit = async (amount: number, description: string): Promise<T
       throw new Error('No wallet found for user');
     }
     
-    // Add transaction with proper wallet_id and user_id foreign keys
+    // Add transaction
     const { data, error } = await supabase
       .from('transactions')
       .insert({
         wallet_id: wallet.id,
-        user_id: user.id,
         type: 'deposit',
         amount: amount,
-        status: 'success',
         description: description || 'Manual deposit',
         created_at: new Date().toISOString()
       })
