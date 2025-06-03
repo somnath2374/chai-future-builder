@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import RazorpayRoundUpForm from '@/components/RazorpayRoundUpForm';
+import TransactionManager from '@/components/TransactionManager';
 
 const Dashboard = () => {
   const { wallet, loading, paymentLoading, initiateRazorpayPayment, refreshWallet } = useWallet();
@@ -185,6 +185,14 @@ const Dashboard = () => {
             </Tabs>
             <FinancialTips />
           </div>
+        </div>
+
+        {/* Add Transaction Management Section */}
+        <div className="mb-8">
+          <TransactionManager 
+            transactions={wallet?.transactions || []}
+            onRefresh={refreshWallet}
+          />
         </div>
       </main>
     </div>
