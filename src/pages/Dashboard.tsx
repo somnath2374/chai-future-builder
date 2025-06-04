@@ -11,13 +11,13 @@ import { signOut, getCurrentUser } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useWallet } from '@/hooks/useWallet';
 import { useEduScore } from '@/hooks/useEduScore';
-import { WalletCard } from '@/components/WalletCard';
-import { TransactionsList } from '@/components/TransactionsList';
-import { AddTransactionForm } from '@/components/AddTransactionForm';
-import { EduScoreCard } from '@/components/EduScoreCard';
-import { LearningProgress } from '@/components/LearningProgress';
-import { FinancialTips } from '@/components/FinancialTips';
-import { DepositForm } from '@/components/DepositForm';
+import WalletCard from '@/components/WalletCard';
+import TransactionsList from '@/components/TransactionsList';
+import AddTransactionForm from '@/components/AddTransactionForm';
+import EduScoreCard from '@/components/EduScoreCard';
+import LearningProgress from '@/components/LearningProgress';
+import FinancialTips from '@/components/FinancialTips';
+import DepositForm from '@/components/DepositForm';
 import DeleteAccountDialog from '@/components/DeleteAccountDialog';
 import { 
   User, 
