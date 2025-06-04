@@ -8,7 +8,9 @@ import { getCurrentUser } from '@/lib/auth';
 
 export const useWallet = () => {
   const [wallet, setWallet] = useState<Wallet | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [transactionsLoading, setTransactionsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -28,6 +30,7 @@ export const useWallet = () => {
       const walletData = await fetchWallet();
       if (walletData) {
         setWallet(walletData);
+        setTransactions(walletData.transactions || []);
         setError(null);
       }
     } catch (err: any) {
@@ -45,6 +48,7 @@ export const useWallet = () => {
       }
     } finally {
       setLoading(false);
+      setTransactionsLoading(false);
     }
   };
 
@@ -145,6 +149,7 @@ export const useWallet = () => {
     
     if (!supabaseUrl || !supabaseKey) {
       setLoading(false);
+      setTransactionsLoading(false);
       setError('Supabase configuration is missing. Please connect to Supabase in the interface.');
       toast({
         title: "Connection missing",
@@ -159,7 +164,9 @@ export const useWallet = () => {
 
   return {
     wallet,
+    transactions,
     loading,
+    transactionsLoading,
     error,
     refreshWallet: getWallet,
     addRoundUp,
