@@ -37,7 +37,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   // Use our custom hooks
-  const { wallet, loading: walletLoading, addRoundUp, addDirectDeposit } = useWallet();
+  const { wallet, loading: walletLoading, addRoundUp, addDirectDeposit, transactions, transactionsLoading } = useWallet();
   const { score, loading: scoreLoading, completeLesson } = useEduScore();
 
   useEffect(() => {
@@ -212,12 +212,12 @@ const Dashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <AddTransactionForm onSubmit={handleRoundUpSubmit} />
+                    <AddTransactionForm />
                   </CardContent>
                 </Card>
               </div>
               <div>
-                <TransactionsList />
+                <TransactionsList transactions={transactions || []} loading={transactionsLoading} />
               </div>
             </div>
           </TabsContent>
@@ -225,8 +225,8 @@ const Dashboard = () => {
           <TabsContent value="education" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-6">
-                <EduScoreCard score={score} loading={scoreLoading} />
-                <LearningProgress onLessonComplete={handleLessonComplete} />
+                <EduScoreCard />
+                <LearningProgress />
               </div>
               <div>
                 <FinancialTips />
@@ -244,7 +244,7 @@ const Dashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DepositForm onSubmit={handleDepositSubmit} />
+                  <DepositForm />
                 </CardContent>
               </Card>
               <Card>
@@ -255,7 +255,7 @@ const Dashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <TransactionsList />
+                  <TransactionsList transactions={transactions || []} loading={transactionsLoading} />
                 </CardContent>
               </Card>
             </div>
