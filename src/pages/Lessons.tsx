@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { LogOut, BookOpen, Award, Video, FileText, HelpCircle } from "lucide-react";
+import { LogOut, BookOpen, Award, Video, FileText, HelpCircle, RotateCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -104,7 +104,7 @@ const Lessons = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { score, loading: eduScoreLoading, completeLesson } = useEduScore();
+  const { score, loading: eduScoreLoading, completeLesson, retakeLesson } = useEduScore();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -142,10 +142,20 @@ const Lessons = () => {
 
   const handleCompleteLesson = async (lessonId: string) => {
     const result = await completeLesson(lessonId);
-    if (result.success) {
+    if (result?.success) {
       toast({
         title: "Lesson Completed!",
         description: `You earned ${result.scoreEarned} points for your EduScore.`,
+      });
+    }
+  };
+
+  const handleRetakeLesson = async (lessonId: string) => {
+    const result = await retakeLesson(lessonId);
+    if (result?.success) {
+      toast({
+        title: "Lesson Reset!",
+        description: `${result.scoreDeducted} points deducted. You can now retake this lesson.`,
       });
     }
   };
@@ -228,46 +238,63 @@ const Lessons = () => {
 
           <TabsContent value="lessons">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {lessons.map((lesson) => (
-                <Card key={lesson.id} className="overflow-hidden">
-                  <CardHeader className="bg-educhain-lightPurple bg-opacity-30 pb-2">
-                    <div className="flex justify-between items-center">
-                      <div className="bg-white p-2 rounded-full shadow">
-                        {lesson.icon}
+              {lessons.map((lesson) => {
+                const isCompleted = completedLessonIds.includes(lesson.id);
+                
+                return (
+                  <Card key={lesson.id} className="overflow-hidden">
+                    <CardHeader className="bg-educhain-lightPurple bg-opacity-30 pb-2">
+                      <div className="flex justify-between items-center">
+                        <div className="bg-white p-2 rounded-full shadow">
+                          {lesson.icon}
+                        </div>
+                        <div className="text-sm font-medium px-2 py-1 bg-white rounded-full shadow">
+                          {lesson.type}
+                        </div>
                       </div>
-                      <div className="text-sm font-medium px-2 py-1 bg-white rounded-full shadow">
-                        {lesson.type}
+                      <CardTitle className="mt-2 text-lg">{lesson.title}</CardTitle>
+                      <CardDescription>{lesson.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="flex justify-between text-sm text-gray-600 mb-4">
+                        <div>{lesson.duration}</div>
+                        <div>{lesson.difficulty}</div>
                       </div>
-                    </div>
-                    <CardTitle className="mt-2 text-lg">{lesson.title}</CardTitle>
-                    <CardDescription>{lesson.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="flex justify-between text-sm text-gray-600 mb-4">
-                      <div>{lesson.duration}</div>
-                      <div>{lesson.difficulty}</div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="border-t bg-gray-50 flex justify-between">
-                    <Button 
-                      variant="link"
-                      className="text-educhain-purple"
-                      onClick={() => navigate(`/lessons/${lesson.id}`)}
-                    >
-                      Read Lesson
-                    </Button>
-                    <Button 
-                      variant={completedLessonIds.includes(lesson.id) ? "outline" : "default"}
-                      size="sm"
-                      disabled={completedLessonIds.includes(lesson.id)}
-                      onClick={() => handleCompleteLesson(lesson.id)}
-                      className={completedLessonIds.includes(lesson.id) ? "bg-gray-100" : "bg-educhain-purple"}
-                    >
-                      {completedLessonIds.includes(lesson.id) ? "Completed" : "Mark Complete"}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
+                    </CardContent>
+                    <CardFooter className="border-t bg-gray-50 flex justify-between">
+                      <Button 
+                        variant="link"
+                        className="text-educhain-purple"
+                        onClick={() => navigate(`/lessons/${lesson.id}`)}
+                      >
+                        Read Lesson
+                      </Button>
+                      <div className="flex gap-2">
+                        {!isCompleted ? (
+                          <Button 
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleCompleteLesson(lesson.id)}
+                            className="bg-educhain-purple"
+                          >
+                            Mark Complete
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRetakeLesson(lesson.id)}
+                            className="flex items-center gap-1"
+                          >
+                            <RotateCcw className="h-3 w-3" />
+                            Retake
+                          </Button>
+                        )}
+                      </div>
+                    </CardFooter>
+                  </Card>
+                );
+              })}
             </div>
           </TabsContent>
 

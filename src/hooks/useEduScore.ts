@@ -147,6 +147,75 @@ export const useEduScore = () => {
     }
   };
 
+  const retakeLesson = async (lessonId: string, pointsToDeduct: number = 10) => {
+    try {
+      const user = await getCurrentUser();
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to continue.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      // Make sure we have the latest score
+      await fetchEduScore();
+      
+      if (!score) {
+        throw new Error("EduScore not initialized");
+      }
+      
+      // Check if the lesson is actually completed
+      if (!score.completed_lessons.includes(lessonId)) {
+        toast({
+          title: "Lesson not completed",
+          description: "You haven't completed this lesson yet.",
+          variant: "destructive",
+        });
+        return { success: false, scoreDeducted: 0 };
+      }
+      
+      // Remove the lesson from completed lessons and deduct points
+      const newCompletedLessons = score.completed_lessons.filter(id => id !== lessonId);
+      const newScore = Math.max(0, score.score - pointsToDeduct); // Ensure score doesn't go below 0
+      
+      const { data, error } = await supabase
+        .from('edu_scores')
+        .update({
+          score: newScore,
+          completed_lessons: newCompletedLessons,
+          last_updated: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error updating EduScore for retake:', error);
+        throw error;
+      }
+      
+      setScore(data as EduScore);
+      
+      return { 
+        success: true, 
+        scoreDeducted: pointsToDeduct 
+      };
+    } catch (err: any) {
+      console.error('Error retaking lesson:', err);
+      toast({
+        title: "Error",
+        description: err?.message || "Could not reset your progress. Please try again.",
+        variant: "destructive",
+      });
+      return { 
+        success: false, 
+        scoreDeducted: 0 
+      };
+    }
+  };
+
   // Fetch EduScore on component mount
   useEffect(() => {
     fetchEduScore();
@@ -157,6 +226,7 @@ export const useEduScore = () => {
     loading,
     error,
     fetchEduScore,
-    completeLesson
+    completeLesson,
+    retakeLesson
   };
 };
