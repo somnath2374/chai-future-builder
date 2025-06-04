@@ -147,7 +147,7 @@ export const useWallet = () => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
-    if (!supabaseUrl || !supabaseKey) {
+    /*if (!supabaseUrl || !supabaseKey) {
       setLoading(false);
       setTransactionsLoading(false);
       setError('Supabase configuration is missing. Please connect to Supabase in the interface.');
@@ -157,7 +157,7 @@ export const useWallet = () => {
         variant: "destructive",
       });
       return;
-    }
+    }*/
     
     getWallet();
   }, []);
