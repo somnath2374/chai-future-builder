@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import DeleteAccountDialog from '@/components/DeleteAccountDialog';
+import ChangePasswordDialog from '@/components/ChangePasswordDialog';
 
 interface SettingsTabContentProps {
   user: any;
@@ -58,9 +58,7 @@ const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ user }) => {
         <CardContent className="space-y-4">
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-2">Security</h4>
-            <Button variant="outline" className="w-full">
-              Change Password
-            </Button>
+            <ChangePasswordDialog />
           </div>
           
           <Separator />
@@ -68,7 +66,7 @@ const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ user }) => {
           <div>
             <h4 className="text-sm font-medium text-red-600 mb-2">Danger Zone</h4>
             <p className="text-xs text-gray-500 mb-3">
-              Once you delete your account, there is no going back. Please be certain.
+              This will delete all your account data and sign you out immediately.
             </p>
             <DeleteAccountDialog />
           </div>

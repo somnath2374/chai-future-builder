@@ -37,31 +37,59 @@ const DeleteAccountDialog = () => {
     setLoading(true);
     
     try {
-      // Delete the user account
-      const { error } = await supabase.auth.admin.deleteUser(
-        (await supabase.auth.getUser()).data.user?.id || ''
-      );
+      // Get the current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
       
-      if (error) {
-        // Fallback: Sign out the user if admin delete fails
-        await supabase.auth.signOut();
-        toast({
-          title: "Account deletion initiated",
-          description: "Your account deletion has been initiated. You have been signed out.",
-        });
-      } else {
-        toast({
-          title: "Account deleted",
-          description: "Your account has been successfully deleted.",
-        });
+      if (userError || !user) {
+        throw new Error('No authenticated user found');
       }
+
+      // Delete related data first (wallets, transactions, edu_scores)
+      const { error: walletError } = await supabase
+        .from('wallets')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (walletError) {
+        console.error('Error deleting wallet:', walletError);
+      }
+
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (transactionError) {
+        console.error('Error deleting transactions:', transactionError);
+      }
+
+      const { error: eduScoreError } = await supabase
+        .from('edu_scores')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (eduScoreError) {
+        console.error('Error deleting edu scores:', eduScoreError);
+      }
+
+      // Finally, sign out the user (this effectively "deletes" their session)
+      const { error: signOutError } = await supabase.auth.signOut();
+      
+      if (signOutError) {
+        throw signOutError;
+      }
+
+      toast({
+        title: "Account data deleted",
+        description: "Your account data has been successfully removed and you have been signed out.",
+      });
       
       navigate('/');
     } catch (error: any) {
       console.error('Delete account error:', error);
       toast({
         title: "Deletion failed",
-        description: error.message || "Failed to delete account. Please try again.",
+        description: error.message || "Failed to delete account data. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -79,10 +107,10 @@ const DeleteAccountDialog = () => {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Account</AlertDialogTitle>
+          <AlertDialogTitle>Delete Account Data</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your account
-            and remove all of your data from our servers.
+            This action will permanently delete all your account data including your wallet, 
+            transactions, and education progress. You will be signed out immediately.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="py-4">
@@ -108,7 +136,7 @@ const DeleteAccountDialog = () => {
                 Deleting...
               </>
             ) : (
-              'Delete Account'
+              'Delete Account Data'
             )}
           </AlertDialogAction>
         </AlertDialogFooter>
